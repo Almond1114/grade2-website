@@ -199,6 +199,44 @@ function jsonp(url) {
     document.body.appendChild(script);
   });
 }
+
+function dataCacheKey() {
+  const base = GAS_URL || "sample";
+  let hash = 0;
+  for (let i = 0; i < base.length; i++) hash = ((hash << 5) - hash + base.charCodeAt(i)) | 0;
+  return "grade2DataCache:" + Math.abs(hash);
+}
+function readLocalDataCache() {
+  try {
+    const raw = localStorage.getItem(dataCacheKey());
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || !parsed.data) return null;
+    const savedAt = Number(parsed.savedAt || 0);
+    // max age が0以下なら常に使わない。通常は10分以内のキャッシュを先出し。
+    if (DATA_CACHE_MAX_AGE <= 0) return null;
+    if (savedAt && Date.now() - savedAt > DATA_CACHE_MAX_AGE) {
+      // 古すぎるキャッシュでも通信失敗時のために残すが、先出しには使わない。
+      return null;
+    }
+    return parsed;
+  } catch (error) {
+    console.warn("local cache read failed", error);
+    return null;
+  }
+}
+function saveLocalDataCache(data) {
+  try {
+    if (DATA_CACHE_MAX_AGE <= 0) return;
+    localStorage.setItem(dataCacheKey(), JSON.stringify({ savedAt: Date.now(), data }));
+  } catch (error) {
+    console.warn("local cache save failed", error);
+  }
+}
+function clearLocalDataCache() {
+  try { localStorage.removeItem(dataCacheKey()); } catch (error) { console.warn("local cache clear failed", error); }
+}
+
 async function loadData() {
   renderConnection("loading");
   if (!GAS_URL) {
