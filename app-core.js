@@ -97,6 +97,31 @@ let selectedRowNumber = "";
 
 const $ = (id) => document.getElementById(id);
 
+function applySiteIdentity() {
+  const title = SITE_TITLE || "2Base";
+  const subtitle = SITE_SUBTITLE || "2学年総合web";
+  const mark = SITE_MARK || "2";
+
+  document.querySelectorAll(".brand-mark").forEach(el => { el.textContent = mark; });
+  document.querySelectorAll(".brand-text strong").forEach(el => { el.textContent = title; });
+  document.querySelectorAll(".brand-text small").forEach(el => { el.textContent = subtitle; });
+  document.querySelectorAll("[data-site-title]").forEach(el => { el.textContent = title; });
+  document.querySelectorAll("[data-site-subtitle]").forEach(el => { el.textContent = subtitle; });
+  document.querySelectorAll("[data-site-mark]").forEach(el => { el.textContent = mark; });
+
+  const baseTitle = document.title || title;
+  if (baseTitle.includes("2Base")) {
+    document.title = baseTitle.replace(/2Base/g, title);
+  } else if (!baseTitle.includes(title)) {
+    document.title = `${title} | ${baseTitle}`;
+  }
+
+  document.querySelectorAll(".site-footer .page-shell").forEach(el => {
+    el.textContent = `© 2026 ${title} / GitHub Pages + Google Sheets`;
+  });
+}
+
+
 function cloneData(data) { return JSON.parse(JSON.stringify(data)); }
 function clear(node) { if (node) node.innerHTML = ""; }
 function text(value) { return String(value ?? "").trim(); }
