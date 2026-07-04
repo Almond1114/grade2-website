@@ -22,7 +22,7 @@ window.GRADE2_CONFIG = {
   },
 
   // Firebase Console → Cloud Messaging → Web Push certificates の公開VAPIDキー
-  FIREBASE_VAPID_KEY: "",
+  FIREBASE_VAPID_KEY: "BKxCSbWT9WbmvMD0hqJWpySqkDNEqi4PpAPQyJzSnP-NDPp3UKVmRlFbed01kpS_Jdb_2qxubQ8Qv75H16z4-Pw",
 
   // 毎日の確認通知の時刻。サイトを開いている間の簡易通知にも使います。
   DEFAULT_NOTIFY_TIME: "20:00",
