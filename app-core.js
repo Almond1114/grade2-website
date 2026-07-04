@@ -4,6 +4,10 @@ const APP_CONFIG = window.GRADE2_CONFIG || {};
 const GAS_URL = String(APP_CONFIG.GAS_URL || "").trim();
 const SHEET_URL = String(APP_CONFIG.SHEET_URL || "").trim();
 const AI_ENDPOINT = String(APP_CONFIG.AI_ENDPOINT || "").trim();
+const SITE_TITLE = String(APP_CONFIG.SITE_TITLE || "2Base").trim();
+const SITE_SUBTITLE = String(APP_CONFIG.SITE_SUBTITLE || "2学年総合web").trim();
+const SITE_MARK = String(APP_CONFIG.SITE_MARK || "2").trim();
+const DATA_CACHE_MAX_AGE = Number(APP_CONFIG.DATA_CACHE_MAX_AGE || 10 * 60 * 1000);
 
 const SAMPLE_DATA = {
   announcements: [
@@ -69,6 +73,16 @@ const TYPE_LABELS = {
   homework: "提出物",
   links: "学習リンク"
 };
+
+const EDIT_TYPE_META = {
+  announcements: { icon: "📢", short: "学年・クラス連絡", hint: "日付・タイトル・本文・画像URLを変更" },
+  timetable: { icon: "📅", short: "曜日ごとの授業", hint: "クラス・曜日・1〜6時間目・持ち物メモを変更" },
+  homework: { icon: "📝", short: "締切と内容", hint: "教科・締切・内容・メモを変更" },
+  tests: { icon: "🧪", short: "テスト日程", hint: "日付・教科・範囲・持ち物を変更" },
+  items: { icon: "🎒", short: "忘れ物対策", hint: "持ち物名・対象クラス・メモを変更" },
+  links: { icon: "🔗", short: "学習リンク", hint: "タイトル・URL・説明を変更" }
+};
+const EDIT_TYPE_ORDER = ["announcements", "timetable", "homework", "tests", "items", "links"];
 
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 const SCHOOL_DAYS = ["月", "火", "水", "木", "金"];
@@ -194,16 +208,32 @@ async function loadData() {
     renderConnection("sample");
     return;
   }
+
+  const cached = readLocalDataCache();
+  if (cached?.data) {
+    appData = cached.data;
+    dataMode = "cached";
+    renderAll();
+    renderConnection("cached", cached.savedAt);
+    window.dispatchEvent(new CustomEvent("grade2:data-updated"));
+  }
+
   try {
-    const res = await jsonp(`${GAS_URL}?action=data&_=${Date.now()}`);
+    const res = await jsonp(`${GAS_URL}?action=data`);
     if (!res?.ok) throw new Error(res?.error || "データ取得エラー");
     appData = res.data || cloneData(SAMPLE_DATA);
+    saveLocalDataCache(appData);
     dataMode = "live";
     renderAll();
     renderConnection("live");
     window.dispatchEvent(new CustomEvent("grade2:data-updated"));
   } catch (error) {
     console.warn(error);
+    if (cached?.data) {
+      dataMode = "cached";
+      renderConnection("cached-error", cached.savedAt);
+      return;
+    }
     appData = cloneData(SAMPLE_DATA);
     dataMode = "sample";
     renderAll();
@@ -215,8 +245,14 @@ function renderConnection(mode, detail = "") {
   if (!box) return;
   box.className = `connection-banner ${mode}`;
   if (mode === "loading") box.textContent = "データを読み込んでいます...";
-  else if (mode === "live") box.textContent = "ライブ接続中：スプレッドシートの内容を表示しています。";
-  else box.textContent = detail ? `サンプル表示中：${detail}` : "サンプル表示中：app-config.js に GAS_URL を入れると本番データになります。";
+  else if (mode === "live") box.textContent = "ライブ接続中：スプレッドシートの最新データを表示しています。";
+  else if (mode === "cached") {
+    const when = detail ? new Date(Number(detail)).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }) : "前回";
+    box.textContent = `高速表示：${when}に保存したデータを先に表示中。裏で最新版を確認しています。`;
+  } else if (mode === "cached-error") {
+    const when = detail ? new Date(Number(detail)).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }) : "前回";
+    box.textContent = `通信が不安定なので、${when}に保存したデータを表示しています。`;
+  } else box.textContent = detail ? `サンプル表示中：${detail}` : "サンプル表示中：app-config.js に GAS_URL を入れると本番データになります。";
 }
 function card(title, body, meta = "", href = "") {
   const inner = `<h3>${escapeHtml(title)}</h3>${body ? `<p>${escapeHtml(body)}</p>` : ""}${meta ? `<small>${meta}</small>` : ""}`;
@@ -275,7 +311,7 @@ function renderHome() {
   const quick = $("gradeQuickStats");
   if (quick) {
     quick.innerHTML = [
-      card("今日", `${new Date().getMonth()+1}/${new Date().getDate()}（${WEEKDAYS[new Date().getDay()]}）`, "2学年総合web"),
+      card("今日", `${new Date().getMonth()+1}/${new Date().getDate()}（${WEEKDAYS[new Date().getDay()]}）`, SITE_SUBTITLE),
       card("次のテスト", t ? `${t.タイトル || t.教科} ${dueBadge(t.日付)}` : "予定なし", t ? `${dateLabel(t.日付)} / ${escapeHtml(t.範囲 || "")}` : ""),
       card("次の提出物", h ? `${h.タイトル || h.教科} ${dueBadge(h.締切)}` : "予定なし", h ? `${dateLabel(h.締切)} / ${escapeHtml(h.内容 || "")}` : ""),
       card("明日の準備", tomorrow.timetable ? PERIODS.map(p => tomorrow.timetable[p]).filter(Boolean).slice(0,3).join("・") + "..." : "時間割未入力", `${cls} / ${tomorrow.day}曜日`)
@@ -421,15 +457,33 @@ function rowTitle(type, row) {
 }
 function renderEditTypeCards() {
   const box = $("editTypeCards"); if (!box) return;
-  box.innerHTML = Object.keys(TYPE_LABELS).map(type => `<button class="edit-type-card ${type===selectedEditType ? 'active' : ''}" data-edit-type="${type}" type="button"><strong>${TYPE_LABELS[type]}</strong><span>${(appData[type]||[]).length}件</span></button>`).join("");
+  box.innerHTML = EDIT_TYPE_ORDER.map(type => {
+    const meta = EDIT_TYPE_META[type] || { icon: "✏️", short: "編集", hint: "内容を変更" };
+    const count = (appData[type] || []).length;
+    return `<button class="edit-type-card editor-menu-card ${type===selectedEditType ? 'active' : ''}" data-edit-type="${type}" type="button">
+      <span class="edit-type-icon">${meta.icon}</span>
+      <span class="edit-type-copy"><strong>${TYPE_LABELS[type]}</strong><span>${meta.short}</span><small>${meta.hint}</small></span>
+      <em>${count}件</em>
+    </button>`;
+  }).join("");
   box.querySelectorAll("[data-edit-type]").forEach(btn => btn.onclick = () => { selectedEditType = btn.dataset.editType; selectedRowNumber = ""; renderEditor(); });
 }
 function renderEditRowList() {
   const list = $("editRowList"); if (!list) return;
   const rows = rowsForEdit();
   if (!selectedRowNumber && rows[0]) selectedRowNumber = rows[0].__rowNumber;
-  list.innerHTML = rows.length ? rows.map(row => `<button type="button" class="edit-row ${row.__rowNumber === selectedRowNumber ? 'active' : ''}" data-row="${row.__rowNumber}"><span>${escapeHtml(rowTitle(selectedEditType,row))}</span><small>シート ${row.__rowNumber} 行目</small></button>`).join("") : emptyState("該当する行がありません。");
-  list.querySelectorAll("[data-row]").forEach(btn => btn.onclick = () => { selectedRowNumber = btn.dataset.row; renderEditRowList(); renderEditForm(); });
+  const meta = EDIT_TYPE_META[selectedEditType] || {};
+  list.innerHTML = rows.length ? rows.map(row => {
+    const sub = selectedEditType === "timetable"
+      ? `${row["1時間目"] || ""} ${row["2時間目"] || ""} ${row["3時間目"] || ""}`
+      : (row.本文 || row.内容 || row.範囲 || row.持ち物 || row.説明 || row.メモ || "");
+    const cls = row.クラス ? ` / ${row.クラス}` : "";
+    return `<button type="button" class="edit-row ${row.__rowNumber === selectedRowNumber ? 'active' : ''}" data-row="${row.__rowNumber}">
+      <span>${escapeHtml(rowTitle(selectedEditType,row))}</span>
+      <small>${escapeHtml(TYPE_LABELS[selectedEditType])}${escapeHtml(cls)} / シート ${escapeHtml(row.__rowNumber)} 行目</small>
+      ${sub ? `<p>${escapeHtml(sub).slice(0, 80)}</p>` : ""}
+    </button>`;
+  }).join("") : emptyState(`${TYPE_LABELS[selectedEditType] || "この種類"}の行が見つかりません。検索条件を変えてください。`);
 }
 function selectedEditRow() {
   return (appData[selectedEditType] || []).find(r => r.__rowNumber === selectedRowNumber) || null;
@@ -438,14 +492,35 @@ function renderEditForm() {
   const form = $("editForm"); const fieldsBox = $("editFields"); const title = $("editFormTitle");
   if (!form || !fieldsBox) return;
   const row = selectedEditRow();
-  if (!row) { fieldsBox.innerHTML = emptyState("左から編集する行を選んでください。"); return; }
+  if (!row) {
+    if (title) title.textContent = "行を選んでください";
+    fieldsBox.innerHTML = emptyState("左から編集する行を選んでください。");
+    return;
+  }
   if (title) title.textContent = rowTitle(selectedEditType, row);
-  fieldsBox.innerHTML = EDIT_FIELDS[selectedEditType].map(([name, type, choices]) => {
+  const meta = EDIT_TYPE_META[selectedEditType] || {};
+  const preview = `<div class="edit-current-preview wide"><span>${meta.icon || "✏️"} ${escapeHtml(TYPE_LABELS[selectedEditType])}を編集中</span><strong>${escapeHtml(rowTitle(selectedEditType, row))}</strong><small>保存先：スプレッドシート ${escapeHtml(row.__rowNumber)} 行目</small></div>`;
+  const fields = EDIT_FIELDS[selectedEditType].map(([name, type, choices]) => {
     const value = row[name] || "";
-    if (type === "select") return `<label><span>${escapeHtml(name)}</span><select name="${escapeHtml(name)}">${choices.map(c => `<option value="${escapeHtml(c)}" ${c===value ? 'selected' : ''}>${escapeHtml(c)}</option>`).join("")}</select></label>`;
-    if (type === "textarea") return `<label class="wide"><span>${escapeHtml(name)}</span><textarea name="${escapeHtml(name)}" rows="4">${escapeHtml(value)}</textarea></label>`;
-    return `<label><span>${escapeHtml(name)}</span><input type="${type}" name="${escapeHtml(name)}" value="${escapeHtml(value)}"></label>`;
+    const help = fieldHelpText(name, selectedEditType);
+    if (type === "select") return `<label><span>${escapeHtml(name)}</span><select name="${escapeHtml(name)}">${choices.map(c => `<option value="${escapeHtml(c)}" ${c===value ? 'selected' : ''}>${escapeHtml(c)}</option>`).join("")}</select>${help}</label>`;
+    if (type === "textarea") return `<label class="wide"><span>${escapeHtml(name)}</span><textarea name="${escapeHtml(name)}" rows="4">${escapeHtml(value)}</textarea>${help}</label>`;
+    return `<label><span>${escapeHtml(name)}</span><input type="${type}" name="${escapeHtml(name)}" value="${escapeHtml(value)}">${help}</label>`;
   }).join("");
+  fieldsBox.innerHTML = preview + fields;
+}
+function fieldHelpText(name, type) {
+  const helps = {
+    表示: "TRUEで表示、FALSEで非表示",
+    クラス: "全体 / 2-1 / 2-2 など",
+    日付: "できれば 2026-07-10 の形",
+    締切: "できれば 2026-07-10 の形",
+    画像URL: "https:// から始まる画像URLだけ表示",
+    リンクURL: "https:// から始まるURLだけ表示",
+    URL: "https:// から始まるURL",
+    曜日: "時間割はクラス＋曜日で1行"
+  };
+  return helps[name] ? `<small class="field-help">${escapeHtml(helps[name])}</small>` : "";
 }
 async function submitEdit(event) {
   event.preventDefault();
@@ -461,6 +536,7 @@ async function submitEdit(event) {
     const res = await jsonp(`${GAS_URL}?${params.toString()}&_=${Date.now()}`);
     if (!res?.ok) throw new Error(res?.error || "保存エラー");
     if (status) status.textContent = `保存しました。${res.push ? `通知: 成功${res.push.sent||0} 失敗${res.push.failed||0}` : ""}`;
+    clearLocalDataCache();
     await loadData();
   } catch (error) {
     if (status) status.textContent = `保存できませんでした: ${error.message}`;
@@ -539,6 +615,7 @@ window.grade2App = {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
+  applySiteIdentity();
   initEvents();
   initPwaInstall();
   loadData();

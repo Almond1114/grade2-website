@@ -12,6 +12,7 @@
   let reminderTimer = null;
 
   const $ = (id) => document.getElementById(id);
+  const siteTitle = () => String(CONFIG.SITE_TITLE || "2Base");
 
   function setStatus(text) {
     const box = $(STATUS_ID);
@@ -161,7 +162,7 @@
 
     if (typeof messaging.onMessage === "function") {
       messaging.onMessage((payload) => {
-        const title = payload?.notification?.title || payload?.data?.title || "2Base";
+        const title = payload?.notification?.title || payload?.data?.title || siteTitle();
         const body = payload?.notification?.body || payload?.data?.body || "更新通知を受信しました。";
         setPushStatus(`${title}: ${body}`);
         toast("通知を受信しました");
@@ -320,7 +321,7 @@
     if (Notification.permission === "granted") {
       reminderTimer = window.setTimeout(() => {
         try {
-          new Notification("2Base", { body: buildNotificationBody(), icon: "icons/icon-192.png" });
+          new Notification(siteTitle(), { body: buildNotificationBody(), icon: "icons/icon-192.png" });
         } catch (error) {
           console.warn(error);
         }
@@ -344,7 +345,7 @@
     const ok = await requestNotificationPermission();
     if (!ok) return;
     try {
-      new Notification("2Base", { body: buildNotificationBody(), icon: "icons/icon-192.png" });
+      new Notification(siteTitle(), { body: buildNotificationBody(), icon: "icons/icon-192.png" });
       setStatus("ブラウザ通知を表示しました。");
     } catch (error) {
       setStatus(`通知表示に失敗しました: ${error.message}`);
@@ -360,7 +361,7 @@
     setPushStatus("全登録端末へテストPushを送信中...");
     const params = new URLSearchParams({
       action: "sendPushTest",
-      title: "2Base",
+      title: siteTitle(),
       body: buildNotificationBody(),
       className: getSelectedClass()
     });

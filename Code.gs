@@ -77,6 +77,8 @@ const LOG_SHEET_NAME = "編集ログ";
 const HELP_SHEET_NAME = "使い方";
 const PUSH_TOKENS_SHEET_NAME = "Push登録端末";
 const PUSH_ON_EDIT = true;
+const DATA_CACHE_KEY = "GRADE2_SITE_DATA_V2";
+const DATA_CACHE_SECONDS = 90;
 const FCM_SCOPE = "https://www.googleapis.com/auth/firebase.messaging";
 
 
@@ -88,7 +90,7 @@ function doGet(e) {
     let result;
 
     if (action === "data") {
-      result = { ok: true, data: getAllData() };
+      result = { ok: true, data: getAllDataCached_() };
     } else if (action === "update") {
       result = updateEntry(e.parameter);
     } else if (action === "setup") {
@@ -166,6 +168,7 @@ function setupSheets() {
   setupLogSheet(ss);
   setupHelpSheet(ss);
   setupPushTokenSheet(ss);
+  clearDataCache_();
 
   return { ok: true, message: "シート作成が完了しました" };
 }
@@ -252,6 +255,32 @@ function applyValidations(sheet, headers) {
   });
 }
 
+function getAllDataCached_() {
+  const cache = CacheService.getScriptCache();
+  const cached = cache.get(DATA_CACHE_KEY);
+  if (cached) {
+    try {
+      return JSON.parse(cached);
+    } catch (_) {
+      cache.remove(DATA_CACHE_KEY);
+    }
+  }
+
+  const data = getAllData();
+  try {
+    cache.put(DATA_CACHE_KEY, JSON.stringify(data), DATA_CACHE_SECONDS);
+  } catch (_) {
+    // データ量が大きい場合はキャッシュせず、そのまま返します。
+  }
+  return data;
+}
+
+function clearDataCache_() {
+  try {
+    CacheService.getScriptCache().remove(DATA_CACHE_KEY);
+  } catch (_) {}
+}
+
 function getAllData() {
   const data = {};
   Object.keys(SHEETS).forEach(key => {
@@ -333,6 +362,7 @@ function updateEntry(params) {
   sheet.getRange(rowNumber, 1, 1, headers.length).setValues([newValues]);
   const detail = changed.length ? changed.join(" / ") : "保存ボタンが押されました";
   appendLog(info.name, rowNumber, detail, oldValues.join(" | "), newValues.join(" | "));
+  clearDataCache_();
 
   let pushResult = null;
   if (PUSH_ON_EDIT) {
