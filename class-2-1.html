@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2-1 | 2Base</title>
+  <meta name="description" content="2学年総合web。時間割・提出物・テスト予定・お知らせを確認できます。" />
+  <meta name="theme-color" content="#ffffff" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="class" data-class="2-1">
+  <header class="site-header">
+    <div class="page-shell topbar">
+      <a class="brand" href="index.html"><span class="brand-mark">2</span><span class="brand-text"><strong>2Base</strong><small>2学年総合web</small></span></a>
+      <nav class="nav" aria-label="メインメニュー"><a class="" href="index.html">ホーム</a><a class="" href="classes.html">クラス</a><a class="" href="tests.html">テスト</a><a class="" href="homework.html">提出物</a><a class="" href="announcements.html">お知らせ</a><a class="" href="links.html">リンク</a><a class="" href="edit.html">編集</a><a class="" href="notifications.html">通知</a></nav>
+      <div class="header-tools">
+        <select class="class-select" aria-label="表示クラス"></select>
+        <select class="theme-select" aria-label="テーマ選択">
+          <option value="clear">Clear White</option>
+          <option value="sky">Sky White</option>
+          <option value="sakura">Sakura</option>
+          <option value="emerald">Emerald</option>
+          <option value="mono">Mono</option>
+          <option value="night">Night</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-title page-shell"><p class="eyebrow">Class Page</p><h1><span data-class-name>2-1</span> のページ</h1><p>よく使う「明日の準備・時間割・提出物・テスト」を上にまとめています。</p><p id="connectionBanner" class="connection-banner">読み込み中...</p></section>
+    <section class="section"><div class="page-shell"><div id="classQuickCards" class="quick-strip"></div></div></section>
+    <section class="section"><div class="page-shell"><div class="section-head"><div><h2>明日の準備</h2><p>時間割、提出物、テストをまとめて確認。</p></div><button class="ghost-btn" id="copyPrepBtn" type="button">コピー</button></div><div id="classTomorrowPrep"></div></div></section>
+    <section class="section"><div class="page-shell"><div class="section-head"><div><h2>時間割</h2><p>2-1の週間時間割。</p></div></div><div id="classTimetable" class="table-wrap"></div></div></section>
+    <section class="section"><div class="page-shell grid-2"><div><div class="section-head"><div><h2>提出物</h2><p>期限が近い順。</p></div></div><div id="classHomeworkList"></div></div><div><div class="section-head"><div><h2>テスト予定</h2><p>小テスト・定期テスト。</p></div></div><div id="classTestList"></div></div></div></section>
+    <section class="section"><div class="page-shell grid-2"><div><div class="section-head"><div><h2>持ち物</h2><p>忘れ物防止。</p></div></div><div id="classItemList"></div></div><div><div class="section-head"><div><h2>お知らせ</h2><p>このクラス・全体の連絡。</p></div></div><div id="classAnnouncementList"></div></div></div></section>
+  </main>
+  <footer class="site-footer"><div class="page-shell">© 2026 2Base / GitHub Pages + Google Sheets</div></footer>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging-compat.js"></script>
+  <script src="app-config.js"></script>
+  <script src="theme.js"></script>
+  <script src="app-core.js"></script>
+  <script src="notifications-web.js"></script>
+</body>
+</html>

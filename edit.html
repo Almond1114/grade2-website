@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>編集 | 2Base</title>
+  <meta name="description" content="2学年総合web。時間割・提出物・テスト予定・お知らせを確認できます。" />
+  <meta name="theme-color" content="#ffffff" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="edit">
+  <header class="site-header">
+    <div class="page-shell topbar">
+      <a class="brand" href="index.html"><span class="brand-mark">2</span><span class="brand-text"><strong>2Base</strong><small>2学年総合web</small></span></a>
+      <nav class="nav" aria-label="メインメニュー"><a class="" href="index.html">ホーム</a><a class="" href="classes.html">クラス</a><a class="" href="tests.html">テスト</a><a class="" href="homework.html">提出物</a><a class="" href="announcements.html">お知らせ</a><a class="" href="links.html">リンク</a><a class="active" href="edit.html">編集</a><a class="" href="notifications.html">通知</a></nav>
+      <div class="header-tools">
+        <select class="class-select" aria-label="表示クラス"></select>
+        <select class="theme-select" aria-label="テーマ選択">
+          <option value="clear">Clear White</option>
+          <option value="sky">Sky White</option>
+          <option value="sakura">Sakura</option>
+          <option value="emerald">Emerald</option>
+          <option value="mono">Mono</option>
+          <option value="night">Night</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="page-title"><p class="eyebrow">Visual Editor</p><h1>編集画面</h1><p>編集する種類を選ぶ → 行を選ぶ → フォームで変更 → 保存。スマホでも操作しやすくしました。</p><p id="connectionBanner" class="connection-banner">読み込み中...</p></section>
+    <section class="section editor-layout">
+      <aside class="editor-card">
+        <h2>1. 編集する種類</h2>
+        <div id="editTypeCards" class="edit-type-grid"></div>
+        <input id="editSearch" class="edit-search" type="search" placeholder="2. 行を検索 例：数学、2-3、体育">
+        <h2>3. 行を選ぶ</h2>
+        <div id="editRowList"></div>
+        <div class="button-row"><a id="sheetLink" class="ghost-link" href="#" target="_blank" rel="noopener noreferrer">スプレッドシートを開く</a></div>
+      </aside>
+      <section class="editor-card">
+        <span class="mini-label">4. 内容を編集</span>
+        <h2 id="editFormTitle">行を選んでください</h2>
+        <form id="editForm">
+          <div id="editFields" class="dynamic-fields"></div>
+          <div class="button-row">
+            <button class="submit-btn" type="submit">変更を保存</button>
+            <button class="ghost-btn" id="resetEditorBtn" type="button">元に戻す</button>
+          </div>
+          <p id="formStatus" class="status-text">保存するとスプレッドシートに反映されます。</p>
+        </form>
+      </section>
+    </section>
+    <section class="section"><div class="section-head"><div><h2>編集履歴</h2><p>サイトから保存した内容の記録。</p></div></div><div class="editor-card" id="editLogList"></div></section>
+  </main>
+  <footer class="site-footer"><div class="page-shell">© 2026 2Base / GitHub Pages + Google Sheets</div></footer>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging-compat.js"></script>
+  <script src="app-config.js"></script>
+  <script src="theme.js"></script>
+  <script src="app-core.js"></script>
+  <script src="notifications-web.js"></script>
+</body>
+</html>

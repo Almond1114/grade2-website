@@ -1,0 +1,13 @@
+Apps Scriptのスクリプトプロパティに入れるもの:
+
+FIREBASE_PROJECT_ID
+FIREBASE_CLIENT_EMAIL
+FIREBASE_PRIVATE_KEY
+
+例:
+FIREBASE_PROJECT_ID=grade2-site-xxxxx
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@grade2-site-xxxxx.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----\nここに秘密鍵\n-----END PRIVATE KEY-----\n
+注意:
+秘密鍵はGitHubにアップロードしない。
+app-config.jsには入れない。

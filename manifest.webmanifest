@@ -1,7 +1,7 @@
 {
-  "name": "2年便利サイト",
-  "short_name": "2年Hub",
-  "description": "2年生向けの時間割・提出物・テスト予定・通知サイト",
+  "name": "2Base",
+  "short_name": "2Base",
+  "description": "2学年総合web。時間割・提出物・テスト予定・通知サイト",
   "start_url": "index.html",
   "scope": "./",
   "display": "standalone",

@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>テスト予定 | 2Base</title>
+  <title>クラス一覧 | 2Base</title>
   <meta name="description" content="2学年総合web。時間割・提出物・テスト予定・お知らせを確認できます。" />
   <meta name="theme-color" content="#ffffff" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <link rel="stylesheet" href="style.css" />
 </head>
-<body data-page="tests">
+<body data-page="classes">
   <header class="site-header">
     <div class="page-shell topbar">
       <a class="brand" href="index.html"><span class="brand-mark">2</span><span class="brand-text"><strong>2Base</strong><small>2学年総合web</small></span></a>
-      <nav class="nav" aria-label="メインメニュー"><a class="" href="index.html">ホーム</a><a class="" href="classes.html">クラス</a><a class="active" href="tests.html">テスト</a><a class="" href="homework.html">提出物</a><a class="" href="announcements.html">お知らせ</a><a class="" href="links.html">リンク</a><a class="" href="edit.html">編集</a><a class="" href="notifications.html">通知</a></nav>
+      <nav class="nav" aria-label="メインメニュー"><a class="" href="index.html">ホーム</a><a class="active" href="classes.html">クラス</a><a class="" href="tests.html">テスト</a><a class="" href="homework.html">提出物</a><a class="" href="announcements.html">お知らせ</a><a class="" href="links.html">リンク</a><a class="" href="edit.html">編集</a><a class="" href="notifications.html">通知</a></nav>
       <div class="header-tools">
         <select class="class-select" aria-label="表示クラス"></select>
         <select class="theme-select" aria-label="テーマ選択">
@@ -30,8 +30,8 @@
   </header>
 
   <main class="page-shell">
-    <section class="page-title"><p class="eyebrow">tests</p><h1>テスト予定</h1><p>小テスト・定期テストをクラスに合わせて表示します。</p><p id="connectionBanner" class="connection-banner">読み込み中...</p></section>
-    <section class="section"><div class="section-head"><div><h2>選択中：<span data-selected-class>-</span></h2><p>右上のクラス選択で表示内容を切り替えできます。</p></div></div><div id="mainList"></div></section>
+    <section class="page-title"><p class="eyebrow">Class Pages</p><h1>クラスごとのページ</h1><p>時間割、明日の準備、提出物、テスト、持ち物をクラスごとに分けました。</p><p id="connectionBanner" class="connection-banner">読み込み中...</p></section>
+    <section class="section"><div id="classCardsLarge" class="grid-3"></div></section>
   </main>
   <footer class="site-footer"><div class="page-shell">© 2026 2Base / GitHub Pages + Google Sheets</div></footer>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
