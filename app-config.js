@@ -12,12 +12,13 @@ window.GRADE2_CONFIG = {
 
   // Firebase Web Push用。Firebase Console の Webアプリ設定を貼ります。
   FIREBASE_CONFIG: {
-    apiKey: "",
-    authDomain: "",
-    projectId: "",
-    storageBucket: "",
-    messagingSenderId: "",
-    appId: ""
+    apiKey: "AIzaSyDBKyDO2V2fGVcpZtBTl2z1ihte291yBk0",
+    authDomain: "grade2-website.firebaseapp.com",
+    projectId: "grade2-website",
+    storageBucket: "grade2-website.firebasestorage.app",
+    messagingSenderId: "1030380979370",
+    appId: "1:1030380979370:web:78419d5b3f4c1c1d10bcd3",
+  measurementId: "G-NT27E9BTR2"
   },
 
   // Firebase Console → Cloud Messaging → Web Push certificates の公開VAPIDキー
