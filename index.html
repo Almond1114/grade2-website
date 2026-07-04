@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2年便利サイト</title>
+  <meta name="description" content="2年生向けの時間割・テスト予定・提出物・持ち物まとめサイト" />
+  <meta name="theme-color" content="#020617" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="bg-orb orb-a"></div>
+  <div class="bg-orb orb-b"></div>
+  <div class="bg-grid"></div>
+
+  <header class="hero" id="home">
+    <nav class="nav" aria-label="メインメニュー">
+      <a href="#home">ホーム</a>
+      <a href="#prep">明日の準備</a>
+      <a href="#timetable">時間割</a>
+      <a href="#tests">テスト</a>
+      <a href="#homework">提出物</a>
+      <a href="#editor">編集</a>
+      <a href="#notifications">通知</a>
+    </nav>
+
+    <section class="hero-inner">
+      <div class="hero-copy">
+        <p class="eyebrow">Grade 2 Utility Hub</p>
+        <h1>2年便利サイト</h1>
+        <p class="lead">時間割・テスト予定・持ち物・提出物を、スプレッドシートから更新。</p>
+      </div>
+
+      <div class="mode-banner" id="connectionBanner">読み込み中...</div>
+
+      <div class="control-bar">
+        <label>
+          表示するクラス
+          <select id="globalClassSelect"></select>
+        </label>
+        <button class="ghost-btn" id="reloadBtn" type="button">再読み込み</button>
+        <button class="ghost-btn" id="copyPrepBtn" type="button">明日の準備をコピー</button>
+      </div>
+
+      <div class="hero-grid">
+        <article class="panel ai-card">
+          <span class="label">AI風 今日の一言</span>
+          <p id="todayMessage">読み込み中...</p>
+          <small id="aiNote">サイト内容から自動で一言を作ります。</small>
+        </article>
+
+        <article class="panel stat-card">
+          <span class="label">今日</span>
+          <strong id="todayDate">-</strong>
+        </article>
+
+        <article class="panel stat-card">
+          <span class="label">次のテスト</span>
+          <strong id="nextTestText">-</strong>
+          <small id="nextTestSub">-</small>
+        </article>
+
+        <article class="panel stat-card">
+          <span class="label">次の提出物</span>
+          <strong id="nextHomeworkText">-</strong>
+          <small id="nextHomeworkSub">-</small>
+        </article>
+      </div>
+    </section>
+  </header>
+
+  <main>
+    <section class="section" id="prep">
+      <div class="section-title">
+        <span>01</span>
+        <div>
+          <h2>明日の準備</h2>
+          <p>選んだクラスの明日の時間割・持ち物・提出物をまとめます。</p>
+        </div>
+      </div>
+      <div id="tomorrowPrep" class="prep-grid"></div>
+    </section>
+
+    <section class="section" id="announcements">
+      <div class="section-title">
+        <span>02</span>
+        <div>
+          <h2>お知らせ</h2>
+          <p>重要な連絡や行事のお知らせ。</p>
+        </div>
+      </div>
+      <div id="announcementList" class="card-grid"></div>
+    </section>
+
+    <section class="section" id="timetable">
+      <div class="section-title">
+        <span>03</span>
+        <div>
+          <h2>時間割</h2>
+          <p>クラスごとに表示できます。</p>
+        </div>
+      </div>
+      <div class="table-panel">
+        <table id="timetableTable"></table>
+      </div>
+    </section>
+
+    <section class="section split-sections">
+      <div id="tests">
+        <div class="section-title compact">
+          <span>04</span>
+          <div>
+            <h2>テスト予定</h2>
+            <p>小テスト・定期テスト。</p>
+          </div>
+        </div>
+        <div id="testList" class="stack-list"></div>
+      </div>
+
+      <div id="items">
+        <div class="section-title compact">
+          <span>05</span>
+          <div>
+            <h2>持ち物</h2>
+            <p>忘れ物防止メモ。</p>
+          </div>
+        </div>
+        <div id="itemList" class="stack-list"></div>
+      </div>
+    </section>
+
+    <section class="section" id="homework">
+      <div class="section-title">
+        <span>06</span>
+        <div>
+          <h2>提出物</h2>
+          <p>期限が近い順に表示します。</p>
+        </div>
+      </div>
+      <div id="homeworkList" class="stack-list"></div>
+    </section>
+
+    <section class="section" id="links">
+      <div class="section-title">
+        <span>07</span>
+        <div>
+          <h2>学習リンク</h2>
+          <p>復習や調べ学習に使えるリンク集。</p>
+        </div>
+      </div>
+      <div id="linkList" class="card-grid"></div>
+    </section>
+
+    <section class="section" id="editor">
+      <div class="section-title">
+        <span>08</span>
+        <div>
+          <h2>サイトから編集</h2>
+          <p>誰でも既存の行を編集して保存できます。</p>
+        </div>
+      </div>
+
+      <div class="editor-layout">
+        <article class="panel form-panel">
+          <div class="warning-box">
+            <strong>公開編集モード</strong>
+            <p>Apps Scriptを「全員」に公開すると本当に誰でも保存できます。荒らされたらスプレッドシートの版の履歴から戻してください。</p>
+          </div>
+
+          <div class="editor-toolbar">
+            <label>
+              編集する種類
+              <select id="editType">
+                <option value="announcements">お知らせ</option>
+                <option value="timetable">時間割</option>
+                <option value="tests">テスト予定</option>
+                <option value="items">持ち物</option>
+                <option value="homework">提出物</option>
+                <option value="links">学習リンク</option>
+              </select>
+            </label>
+
+            <label>
+              行を検索
+              <input id="editSearch" type="search" placeholder="例：数学、2-3、体育" />
+            </label>
+
+            <label class="wide-field">
+              編集する行
+              <select id="rowSelect"></select>
+            </label>
+          </div>
+
+          <form id="editForm">
+            <div id="editFields" class="dynamic-fields"></div>
+            <div class="button-row">
+              <button type="submit" class="submit-btn">変更を保存</button>
+              <button type="button" id="resetEditorBtn" class="ghost-btn">元の内容に戻す</button>
+              <a id="sheetLink" class="ghost-link" href="#" target="_blank" rel="noopener noreferrer">スプレッドシートを開く</a>
+            </div>
+            <p id="formStatus" class="status-text"></p>
+          </form>
+        </article>
+
+        <aside class="panel log-panel">
+          <span class="label">編集履歴</span>
+          <div id="editLogList" class="log-list"></div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section" id="notifications">
+      <div class="section-title">
+        <span>09</span>
+        <div>
+          <h2>Web通知</h2>
+          <p>Webサイト版でも、編集通知・毎日の確認通知を受け取れます。iPhoneはホーム画面に追加すると安定します。</p>
+        </div>
+      </div>
+
+      <div class="notification-grid">
+        <article class="panel notification-panel">
+          <span class="label">通知設定</span>
+          <p class="muted">初回は「通知を許可して始める」を押すだけ。ブラウザ通知の許可とFirebase Push登録を自動で行います。</p>
+
+          <div class="notify-controls">
+            <label>
+              毎日の通知時間
+              <input id="notifyTime" type="time" value="20:00" />
+            </label>
+            <button class="submit-btn" id="enableNotificationsBtn" type="button">通知を許可して始める</button>
+            <button class="ghost-btn" id="scheduleNotificationsBtn" type="button">通知時間を更新</button>
+            <button class="ghost-btn" id="testNotificationBtn" type="button">テスト通知</button>
+          </div>
+
+          <p id="notificationStatus" class="status-text">サイト起動時に通知設定を案内します。</p>
+        </article>
+
+        <article class="panel notification-panel">
+          <span class="label">通知される内容</span>
+          <div class="mini-list">
+            <p>・明日の時間割チェック</p>
+            <p>・近い提出物の確認</p>
+            <p>・近いテストの確認</p>
+          </div>
+          <p class="muted">毎日のリマインドは、サイトを開いている間の通知に加えて、Apps Scriptの時間トリガーで全登録端末へ送れます。</p>
+        </article>
+
+        <article class="panel notification-panel push-panel">
+          <span class="label">Firebase Web Push通知</span>
+          <p class="muted">通知を許可すると、このブラウザが自動登録されます。誰かがサイトから編集すると、登録端末へPush通知を送れます。</p>
+
+          <div class="notify-controls">
+            <button class="ghost-btn" id="registerPushBtn" type="button">再登録</button>
+            <button class="ghost-btn" id="sendPushTestBtn" type="button">Firebaseテスト送信</button>
+            <button class="ghost-btn" id="unregisterPushBtn" type="button">この端末を解除</button>
+          </div>
+
+          <div class="token-box">
+            <span>この端末のトークン</span>
+            <code id="pushTokenText">未登録</code>
+          </div>
+
+          <p id="pushStatus" class="status-text">Firebase Pushの準備中...</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2026 Grade 2 Utility Hub</p>
+  </footer>
+
+
+  <div id="startupOverlay" class="startup-overlay" role="dialog" aria-modal="true" aria-labelledby="startupTitle">
+    <div class="startup-card">
+      <p class="eyebrow">Grade 2 Web App</p>
+      <h2 id="startupTitle">通知を許可して始めよう</h2>
+      <p>このサイトを開いたら、このボタンを押して通知を許可するだけで使えます。iPhoneはSafariでホーム画面に追加してから使うのがおすすめです。</p>
+      <div class="startup-checks">
+        <span>✓ 明日の準備通知を自動セット</span>
+        <span>✓ 編集通知を受け取るブラウザ登録</span>
+        <span>✓ サイト内から時間割・提出物を編集</span>
+      </div>
+      <button class="submit-btn big-start" id="startAppBtn" type="button">通知を許可して始める</button>
+      <button class="ghost-btn" id="skipSetupBtn" type="button">あとで設定する</button>
+      <p id="startupStatus" class="status-text">通知許可の画面が出たら「許可」を選んでください。</p>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging-compat.js"></script>
+  <script src="app-config.js"></script>
+  <script src="script.js"></script>
+  <script src="notifications-web.js"></script>
+</body>
+</html>
