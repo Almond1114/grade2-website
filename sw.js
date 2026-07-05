@@ -1,8 +1,8 @@
-const CACHE_NAME = "grade2-website-pages-v2-1-editor-add-v2-20260704";
+const CACHE_NAME = "grade2-website-pages-v2-1-responsive-ui-v1-20260704";
 const ASSETS = [
   "./", "./index.html", "./classes.html", "./tests.html", "./homework.html", "./announcements.html", "./links.html", "./edit.html", "./notifications.html",
   "./class-2-1.html", "./class-2-2.html", "./class-2-3.html", "./class-2-4.html", "./class-2-5.html",
-  "./style.css", "./theme.js", "./app-core.js", "./editor-add.js", "./notifications-web.js", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png"
+  "./style.css", "./responsive-ui.css", "./theme.js", "./app-core.js", "./editor-add.js", "./notifications-web.js", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png"
 ];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
