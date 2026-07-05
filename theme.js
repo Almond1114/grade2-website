@@ -2,13 +2,18 @@
   const key = "grade2Theme";
   const defaultTheme = "clear";
 
-  function loadResponsiveCss(){
-    if (document.querySelector('link[data-responsive-ui]')) return;
+  function loadCssOnce(href, marker){
+    if (document.querySelector(`link[data-css-loader="${marker}"]`)) return;
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = 'responsive-ui.css?v=1';
-    link.dataset.responsiveUi = 'true';
+    link.href = href;
+    link.dataset.cssLoader = marker;
     document.head.appendChild(link);
+  }
+
+  function loadResponsiveCss(){
+    loadCssOnce('responsive-ui.css?v=2', 'responsive-ui');
+    loadCssOnce('mobile-editor-fix.css?v=1', 'mobile-editor-fix');
   }
 
   function apply(theme){
