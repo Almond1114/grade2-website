@@ -1,0 +1,237 @@
+/* 2Base responsive UI overrides v1
+   PCとスマホで見やすさを分けるための追加CSS。style.cssの後に読み込みます。 */
+
+/* 共通のリサイズ調整 */
+img, video, canvas, svg { max-width: 100%; height: auto; }
+input, select, textarea, button { font-size: 16px; }
+.page-shell { width: min(1180px, 92vw); }
+.content-card, .list-card, .class-card, .editor-card { overflow-wrap: anywhere; }
+
+/* PC / タブレット横向き */
+@media (min-width: 961px) {
+  .site-header { position: sticky; top: 0; }
+  .topbar { min-height: 74px; }
+  .nav { justify-content: center; }
+  .hero-grid { grid-template-columns: minmax(0, 1.15fr) minmax(320px, .85fr); }
+  .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .quick-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+  body[data-page="edit"] .edit-type-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+  body[data-page="edit"] .editor-menu-card {
+    min-height: 128px;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+  }
+  body[data-page="edit"] .editor-menu-card em {
+    grid-column: 2;
+    justify-self: start;
+  }
+  body[data-page="edit"] .editor-layout {
+    grid-template-columns: minmax(330px, .9fr) minmax(520px, 1.1fr);
+    align-items: start;
+  }
+  body[data-page="edit"] .editor-layout > .editor-card:last-child {
+    position: sticky;
+    top: 92px;
+  }
+  body[data-page="edit"] .filter-row {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 12px;
+    align-items: end;
+  }
+  body[data-page="edit"] .sheet-row-list {
+    max-height: 58vh;
+    overflow: auto;
+    padding-right: 4px;
+  }
+}
+
+/* 小さめPC / タブレット */
+@media (max-width: 960px) {
+  .page-shell { width: min(94vw, 760px); }
+  .hero { padding: 42px 0 24px; }
+  .hero-grid,
+  .grid-4,
+  .grid-3,
+  .grid-2,
+  .quick-strip,
+  .prep-board,
+  .editor-layout,
+  .notification-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .section-head { align-items: flex-start; flex-direction: column; }
+  .edit-type-grid { grid-template-columns: 1fr !important; }
+  .filter-row { display: grid; grid-template-columns: 1fr; gap: 0; }
+}
+
+/* スマホ専用UI */
+@media (max-width: 700px) {
+  body {
+    padding-bottom: 76px;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .page-shell { width: min(94vw, 520px); }
+
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 80;
+  }
+  .topbar {
+    gap: 10px;
+    min-height: auto;
+    padding: 10px 0 8px;
+  }
+  .brand-mark {
+    width: 38px;
+    height: 38px;
+    border-radius: 14px;
+  }
+  .brand-text strong { font-size: 17px; }
+  .brand-text small { font-size: 10px; }
+  .header-tools {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    gap: 8px;
+  }
+  .theme-select,
+  .class-select {
+    width: 100% !important;
+    min-width: 0;
+    padding: 10px 11px;
+    border-radius: 14px;
+  }
+
+  .nav {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    z-index: 100;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(72px, 1fr);
+    gap: 6px;
+    overflow-x: auto;
+    padding: 8px;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    background: rgba(255,255,255,.88);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 18px 42px rgba(15,23,42,.18);
+  }
+  :root[data-theme="night"] .nav { background: rgba(15,23,42,.88); }
+  .nav a {
+    text-align: center;
+    white-space: nowrap;
+    padding: 9px 10px;
+    font-size: 12px;
+  }
+
+  .hero-card,
+  .panel,
+  .content-card,
+  .list-card,
+  .class-card,
+  .editor-card,
+  .startup-card,
+  .connection-banner {
+    border-radius: 22px;
+  }
+  .hero-card,
+  .editor-card,
+  .content-card,
+  .list-card {
+    padding: 18px;
+  }
+  .hero h1,
+  .page-title h1 {
+    font-size: clamp(36px, 12vw, 52px);
+    letter-spacing: -.06em;
+  }
+  .page-title { padding: 30px 0 8px; }
+  .section { padding: 22px 0; }
+  .section-head h2 { font-size: clamp(26px, 8vw, 36px); }
+
+  .notice-card { flex-direction: column; }
+  .notice-card img { width: 100%; height: auto; max-height: 220px; }
+  .list-card { align-items: flex-start; flex-direction: column; }
+  .button-row { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .btn, .ghost-btn, .submit-btn, .ghost-link { width: 100%; }
+
+  body[data-page="edit"] .edit-type-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  body[data-page="edit"] .editor-menu-card {
+    min-height: 88px;
+    grid-template-columns: 46px 1fr auto !important;
+    gap: 10px;
+    padding: 14px !important;
+    border-radius: 20px !important;
+  }
+  body[data-page="edit"] .edit-type-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 16px;
+    font-size: 23px;
+  }
+  body[data-page="edit"] .edit-type-copy strong { font-size: 16px; }
+  body[data-page="edit"] .edit-type-copy small { display: none; }
+  body[data-page="edit"] .editor-menu-card em {
+    grid-column: auto;
+    justify-self: end;
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+  body[data-page="edit"] .edit-search {
+    margin: 8px 0 12px;
+  }
+  body[data-page="edit"] .edit-row {
+    padding: 13px;
+    border-radius: 16px;
+  }
+  body[data-page="edit"] .edit-row p {
+    font-size: 12px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  body[data-page="edit"] .dynamic-fields {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+  }
+  body[data-page="edit"] .dynamic-fields label,
+  body[data-page="edit"] .dynamic-fields .wide {
+    grid-column: 1 / -1;
+  }
+  body[data-page="edit"] textarea {
+    min-height: 110px;
+  }
+
+  .data-table { min-width: 680px; }
+  .table-wrap { margin-inline: -3vw; padding-inline: 3vw; }
+}
+
+/* かなり小さいスマホ */
+@media (max-width: 390px) {
+  .nav { grid-auto-columns: minmax(64px, 1fr); }
+  .nav a { font-size: 11px; padding: 8px 8px; }
+  .header-tools { grid-template-columns: 1fr; }
+  body[data-page="edit"] .editor-menu-card {
+    grid-template-columns: 42px 1fr !important;
+  }
+  body[data-page="edit"] .editor-menu-card em {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
