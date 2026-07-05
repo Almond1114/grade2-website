@@ -1,8 +1,8 @@
-// 2Base editor add/update UI layer
-// app-core.js の編集画面だけを上書きして、上段を「追加」、下段を「既存行編集」に分けます。
+// 2Base editor add/update UI layer v2
+// 上段を「追加」、下段を「既存行編集」に分けます。スマホのタップにも強めに対応。
 (function () {
-  if (window.__grade2EditorAddLayer) return;
-  window.__grade2EditorAddLayer = true;
+  if (window.__grade2EditorAddLayerV2) return;
+  window.__grade2EditorAddLayerV2 = true;
 
   function currentMode() {
     return selectedRowNumber === "__new__" ? "add" : "update";
@@ -11,6 +11,7 @@
   function setHiddenMode(mode) {
     const input = $("editMode");
     if (input) input.value = mode;
+    document.body.dataset.editorMode = mode;
   }
 
   function blankRow(type) {
@@ -47,12 +48,20 @@
     return row;
   }
 
+  function scrollToForm() {
+    const target = $("editForm")?.closest(".editor-card") || $("editForm");
+    if (!target) return;
+    requestAnimationFrame(() => {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
   function setAddMode(type) {
     selectedEditType = type || selectedEditType;
     selectedRowNumber = "__new__";
     setHiddenMode("add");
     renderEditor();
-    $("editForm")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    scrollToForm();
   }
 
   function setUpdateMode(type, rowNumber) {
@@ -60,6 +69,7 @@
     selectedRowNumber = rowNumber || "";
     setHiddenMode("update");
     renderEditor();
+    if (rowNumber) scrollToForm();
   }
 
   selectedEditRow = function () {
@@ -82,15 +92,21 @@
     box.innerHTML = EDIT_TYPE_ORDER.map(type => {
       const meta = EDIT_TYPE_META[type] || { icon: "✏️", short: "追加", hint: "新しい内容を追加" };
       const active = currentMode() === "add" && type === selectedEditType;
-      return `<button class="edit-type-card editor-menu-card ${active ? "active" : ""}" data-add-type="${type}" type="button">
+      return `<button class="edit-type-card editor-menu-card ${active ? "active" : ""}" data-add-type="${type}" type="button" aria-label="${escapeHtml(TYPE_LABELS[type])}を追加">
         <span class="edit-type-icon">${meta.icon}</span>
-        <span class="edit-type-copy"><strong>${escapeHtml(TYPE_LABELS[type])}を追加</strong><span>${escapeHtml(meta.short)}</span><small>新しい行としてスプレッドシートに追加</small></span>
+        <span class="edit-type-copy"><strong>${escapeHtml(TYPE_LABELS[type])}を追加</strong><span>${escapeHtml(meta.short)}</span><small>新しい行としてスプレッドシートに追加</small><b class="mobile-add-btn">タップして追加フォームを開く</b></span>
         <em>追加</em>
       </button>`;
     }).join("");
-    box.querySelectorAll("[data-add-type]").forEach(btn => {
-      btn.onclick = () => setAddMode(btn.dataset.addType);
-    });
+
+    const openAdd = (event) => {
+      const btn = event.target.closest("[data-add-type]");
+      if (!btn || !box.contains(btn)) return;
+      event.preventDefault();
+      setAddMode(btn.dataset.addType);
+    };
+    box.onclick = openAdd;
+    box.ontouchend = openAdd;
   };
 
   function renderEditTypeSelect() {
@@ -120,9 +136,15 @@
         ${sub ? `<p>${escapeHtml(sub).slice(0, 90)}</p>` : ""}
       </button>`;
     }).join("");
-    list.querySelectorAll("[data-row]").forEach(btn => {
-      btn.onclick = () => setUpdateMode(selectedEditType, btn.dataset.row);
-    });
+
+    const openRow = (event) => {
+      const btn = event.target.closest("[data-row]");
+      if (!btn || !list.contains(btn)) return;
+      event.preventDefault();
+      setUpdateMode(selectedEditType, btn.dataset.row);
+    };
+    list.onclick = openRow;
+    list.ontouchend = openRow;
   };
 
   function buildFields(row) {
@@ -161,10 +183,10 @@
 
     const row = (appData[selectedEditType] || []).find(r => r.__rowNumber === selectedRowNumber) || null;
     if (!row) {
-      if (title) title.textContent = "編集する行を選んでください";
-      fieldsBox.innerHTML = emptyState("左の一覧から、サイトに載っている内容を選んでください。上のカードは新規追加用です。 ");
+      if (title) title.textContent = "追加するカード、または編集する行を選んでください";
+      fieldsBox.innerHTML = emptyState("上のカードを押すと新規追加フォームが開きます。既存の内容を直す場合は、下の一覧から選びます。 ");
       const status = $("formStatus");
-      if (status) status.textContent = "既存の内容を編集する場合は、左の一覧から選びます。";
+      if (status) status.textContent = "スマホでは、上の追加カードをタップするとこの場所にフォームが出ます。";
       return;
     }
 
@@ -206,7 +228,12 @@
       await loadData();
       setHiddenMode("update");
     } catch (error) {
-      if (status) status.textContent = `${mode === "add" ? "追加" : "保存"}できませんでした: ${error.message}`;
+      const msg = String(error.message || "");
+      if (status) {
+        status.textContent = msg.includes("不明なaction")
+          ? "追加できませんでした: Apps Scriptを新バージョンで再デプロイしてください。"
+          : `${mode === "add" ? "追加" : "保存"}できませんでした: ${msg}`;
+      }
     }
   };
 
