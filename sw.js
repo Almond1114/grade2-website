@@ -1,4 +1,4 @@
-const CACHE_NAME = "grade2-website-pages-v2-1-mobile-gas-url-v3-20260704";
+const CACHE_NAME = "grade2-website-pages-v2-1-order-mobile-v1-20260704";
 const ASSETS = [
   "./", "./index.html", "./classes.html", "./tests.html", "./homework.html", "./announcements.html", "./links.html", "./edit.html", "./notifications.html", "./reset-cache.html",
   "./class-2-1.html", "./class-2-2.html", "./class-2-3.html", "./class-2-4.html", "./class-2-5.html",
