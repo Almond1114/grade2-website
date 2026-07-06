@@ -2,7 +2,7 @@
 // 利用者はサイトを開いて「通知を許可して始める」を押すだけで使えます。
 window.GRADE2_CONFIG = {
   // Google Apps Script のウェブアプリURL
-  GAS_URL: "https://script.google.com/macros/s/AKfycbz4XBR1C6y38c0i_Tr1RSKOq6exR6vZnM_w5lXWxE-6fokWSLFuw7kkcDaxd_L-I07M/exec",
+  GAS_URL: "https://script.google.com/macros/s/AKfycbyDXtmdiqrJF4WpmKQhQglX0f_HNBIU66-kmNHvlESY_ce2E-j-wWeKmVSAj01EnLdT/exec",
 
   // スプレッドシートを直接開くボタンを使いたい場合だけ入力
   SHEET_URL: "https://docs.google.com/spreadsheets/d/1r5uwPUP3oXz-ZkImgZ5j6YfDqwHgK1Vy6xyKj0T4rHg/edit",
@@ -30,5 +30,5 @@ window.GRADE2_CONFIG = {
   // 通知許可後、Firebase Web Push登録も自動で行う
   AUTO_PUSH_REGISTER: true,
 
-  APP_VERSION: "2.0.0-web"
+  APP_VERSION: "2.0.1-gas-url"
 };
