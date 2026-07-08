@@ -34,7 +34,7 @@
     <section class="section notification-grid">
       <article class="panel notification-panel">
         <span class="mini-label">通知設定</span>
-        <p class="muted">初回は「通知を許可して始める」を押すだけ。ブラウザ通知の許可とFirebase Push登録を自動で行います。</p>
+        <p class="muted">スマホでは、まずこの端末で通知を許可します。iPhoneはホーム画面に追加した2Baseから開くと通知が安定します。</p>
         <div class="notify-controls">
           <label>毎日の通知時間<br><input id="notifyTime" type="time" value="20:00"></label>
           <button class="submit-btn" id="enableNotificationsBtn" type="button">通知を許可して始める</button>
@@ -45,7 +45,7 @@
       </article>
       <article class="panel notification-panel">
         <span class="mini-label">Firebase Web Push通知</span>
-        <p class="muted">通知許可後、このブラウザが自動登録されます。編集時に登録端末へPush通知できます。</p>
+        <p class="muted">Android/PCはFirebase Push登録できます。iPhoneはホーム画面アプリの通知許可を使います。</p>
         <div class="notify-controls">
           <button class="ghost-btn" id="registerPushBtn" type="button">再登録</button>
           <button class="ghost-btn" id="sendPushTestBtn" type="button">Firebaseテスト送信</button>
@@ -60,8 +60,8 @@
     <div class="startup-card">
       <p class="eyebrow">2学年総合web</p>
       <h2 id="startupTitle">通知を許可して始めよう</h2>
-      <p>このボタンを押して通知を許可するだけで、明日の準備通知と編集通知を使えます。</p>
-      <div class="startup-checks"><span>✓ 明日の準備通知</span><span>✓ 編集通知を受け取るブラウザ登録</span><span>✓ サイト内編集に対応</span></div>
+      <p>このボタンを押して通知を許可します。iPhoneはSafariの共有ボタンからホーム画面に追加して、ホーム画面の2Baseから開いてください。</p>
+      <div class="startup-checks"><span>✓ 明日の準備通知</span><span>✓ スマホ通知の確認</span><span>✓ サイト内編集に対応</span></div>
       <button class="submit-btn" id="startAppBtn" type="button">通知を許可して始める</button>
       <button class="ghost-btn" id="skipSetupBtn" type="button">あとで設定する</button>
       <p id="startupStatus" class="status-text">通知許可の画面が出たら「許可」を選んでください。</p>
@@ -71,9 +71,10 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging-compat.js"></script>
-  <script src="app-config.js"></script>
-  <script src="theme.js"></script>
-  <script src="app-core.js"></script>
-  <script src="notifications-web.js"></script>
+  <script src="app-config.js?v=notification-mobile1"></script>
+  <script src="theme.js?v=notification-mobile1"></script>
+  <script src="app-core.js?v=notification-mobile1"></script>
+  <script src="notifications-web.js?v=notification-mobile1"></script>
+  <script src="mobile-notification-fix.js?v=1"></script>
 </body>
 </html>
