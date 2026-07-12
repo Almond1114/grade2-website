@@ -1,7 +1,7 @@
 (function(){
   window.GRADE2_CONFIG = window.GRADE2_CONFIG || {};
   window.GRADE2_CONFIG.DATA_CACHE_MAX_AGE = 60 * 1000;
-  window.GRADE2_CONFIG.APP_VERSION = "2.2.0-stylish-ui";
+  window.GRADE2_CONFIG.APP_VERSION = "2.3.0-exceptional-ui";
 
   const key = "grade2Theme";
   const defaultTheme = "clear";
@@ -17,9 +17,7 @@
     const originalRegister = navigator.serviceWorker.register.bind(navigator.serviceWorker);
     navigator.serviceWorker.register = function(scriptURL, options) {
       const path = normalizeSwPath(scriptURL);
-      if (path.endsWith("/sw.js") || path === "sw.js") {
-        return originalRegister("firebase-messaging-sw.js", options);
-      }
+      if (path.endsWith("/sw.js") || path === "sw.js") return originalRegister("firebase-messaging-sw.js", options);
       return originalRegister(scriptURL, options);
     };
   }
@@ -33,11 +31,22 @@
     document.head.appendChild(link);
   }
 
-  function loadSiteCss(){
-    loadCssOnce("responsive-ui.css?v=4", "responsive-ui");
-    loadCssOnce("mobile-editor-fix.css?v=3", "mobile-editor-fix");
-    loadCssOnce("brand-icon.css?v=2", "brand-icon");
-    loadCssOnce("stylish-ui.css?v=1", "stylish-ui");
+  function loadScriptOnce(src, marker){
+    if (document.querySelector(`script[data-script-loader="${marker}"]`)) return;
+    const script = document.createElement("script");
+    script.src = src;
+    script.defer = true;
+    script.dataset.scriptLoader = marker;
+    document.head.appendChild(script);
+  }
+
+  function loadSiteAssets(){
+    loadCssOnce("responsive-ui.css?v=5", "responsive-ui");
+    loadCssOnce("mobile-editor-fix.css?v=4", "mobile-editor-fix");
+    loadCssOnce("brand-icon.css?v=3", "brand-icon");
+    loadCssOnce("stylish-ui.css?v=3", "stylish-ui");
+    loadCssOnce("exceptional-ui.css?v=1", "exceptional-ui");
+    loadScriptOnce("ux-enhancements.js?v=1", "ux-enhancements");
   }
 
   function parseTimestamp(value) {
@@ -128,7 +137,7 @@
       mark.textContent = "";
       const image = document.createElement("img");
       image.className = "brand-icon-image";
-      image.src = "icons/brand-icon.svg?v=2";
+      image.src = "icons/brand-icon.svg?v=3";
       image.alt = "2Base";
       image.width = 64;
       image.height = 64;
@@ -141,7 +150,7 @@
       document.head.appendChild(favicon);
     }
     favicon.type = "image/svg+xml";
-    favicon.href = "icons/brand-icon.svg?v=2";
+    favicon.href = "icons/brand-icon.svg?v=3";
   }
 
   function apply(theme){
@@ -152,7 +161,7 @@
   }
 
   function init(){
-    loadSiteCss();
+    loadSiteAssets();
     installOrderFix();
     const saved = localStorage.getItem(key) || defaultTheme;
     apply(saved);
