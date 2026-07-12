@@ -2,38 +2,78 @@
   const key = "grade2Theme";
   const defaultTheme = "clear";
 
+  function normalizeSwPath(value) {
+    try {
+      return new URL(value, location.href).pathname;
+    } catch (_) {
+      return String(value || "");
+    }
+  }
+
+  // app-core.js と notifications-web.js が別々のService Workerを同じscopeへ登録していたため、
+  // すべてFirebase対応の統合Workerへ揃えます。
+  function installServiceWorkerRedirect() {
+    if (!("serviceWorker" in navigator) || window.__grade2SwRedirectInstalled) return;
+    window.__grade2SwRedirectInstalled = true;
+
+    const originalRegister = navigator.serviceWorker.register.bind(navigator.serviceWorker);
+    navigator.serviceWorker.register = function(scriptURL, options) {
+      const path = normalizeSwPath(scriptURL);
+      if (path.endsWith("/sw.js") || path === "sw.js") {
+        return originalRegister("firebase-messaging-sw.js", options);
+      }
+      return originalRegister(scriptURL, options);
+    };
+  }
+
   function loadCssOnce(href, marker){
     if (document.querySelector(`link[data-css-loader="${marker}"]`)) return;
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
     link.href = href;
     link.dataset.cssLoader = marker;
     document.head.appendChild(link);
   }
 
-  function loadResponsiveCss(){
-    loadCssOnce('responsive-ui.css?v=2', 'responsive-ui');
-    loadCssOnce('mobile-editor-fix.css?v=1', 'mobile-editor-fix');
+  function loadSiteCss(){
+    loadCssOnce("responsive-ui.css?v=3", "responsive-ui");
+    loadCssOnce("mobile-editor-fix.css?v=2", "mobile-editor-fix");
+    loadCssOnce("brand-icon.css?v=1", "brand-icon");
+  }
+
+  function parseTimestamp(value) {
+    const raw = String(value || "").trim();
+    if (!raw) return null;
+    const normalized = raw.replace(/\s+/, "T").replace(/[/.]/g, "-");
+    const date = new Date(normalized);
+    return Number.isNaN(date.getTime()) ? null : date.getTime();
+  }
+
+  function newestRows(rows, dateKey) {
+    return [...(rows || [])].sort((a, b) => {
+      const createdA = parseTimestamp(a.作成日時);
+      const createdB = parseTimestamp(b.作成日時);
+      if (createdA !== null || createdB !== null) {
+        if (createdA === null) return 1;
+        if (createdB === null) return -1;
+        if (createdB !== createdA) return createdB - createdA;
+      }
+
+      const dateA = typeof parseDate === "function" ? parseDate(a[dateKey]) : null;
+      const dateB = typeof parseDate === "function" ? parseDate(b[dateKey]) : null;
+      const timeA = dateA ? dateA.getTime() : -1;
+      const timeB = dateB ? dateB.getTime() : -1;
+      if (timeB !== timeA) return timeB - timeA;
+
+      return Number(b.__rowNumber || 0) - Number(a.__rowNumber || 0);
+    });
   }
 
   function installOrderFix(){
     try {
       if (window.__grade2OrderFixInstalled) return;
-      if (typeof renderHome !== 'function' || typeof renderListPage !== 'function') return;
+      if (typeof renderHome !== "function" || typeof renderListPage !== "function") return;
       window.__grade2OrderFixInstalled = true;
-
-      function newestRows(rows, key) {
-        return [...(rows || [])].sort((a, b) => {
-          const da = parseDate(a[key]);
-          const db = parseDate(b[key]);
-          const ta = da ? da.getTime() : -1;
-          const tb = db ? db.getTime() : -1;
-          if (tb !== ta) return tb - ta;
-          const ra = Number(a.__rowNumber || 999999);
-          const rb = Number(b.__rowNumber || 999999);
-          return ra - rb;
-        });
-      }
 
       const originalRenderHome = renderHome;
       renderHome = function() {
@@ -42,7 +82,7 @@
         const box = $("homeNoticeList");
         if (!box) return;
         const rows = newestRows(visibleRows("announcements", selectedClass), "日付").slice(0, 4);
-        box.innerHTML = rows.length ? rows.map(r => noticeCard(r)).join("") : emptyState("お知らせはありません。");
+        box.innerHTML = rows.length ? rows.map(noticeCard).join("") : emptyState("お知らせはありません。");
       };
 
       const originalRenderClassPage = renderClassPage;
@@ -50,43 +90,105 @@
         originalRenderClassPage();
         if (!document.body.matches('[data-page="class"]')) return;
         const cls = getCurrentPageClass();
-        const box = $("classAnnouncementList");
-        if (!box) return;
-        const rows = newestRows(visibleRows("announcements", cls), "日付").slice(0, 4);
-        box.innerHTML = rows.length ? rows.map(r => noticeCard(r)).join("") : emptyState("お知らせはありません。");
+
+        const noticeBox = $("classAnnouncementList");
+        if (noticeBox) {
+          const notices = newestRows(visibleRows("announcements", cls), "日付").slice(0, 4);
+          noticeBox.innerHTML = notices.length ? notices.map(noticeCard).join("") : emptyState("お知らせはありません。");
+        }
+
+        const itemBox = $("classItemList");
+        if (itemBox) {
+          itemBox.innerHTML = renderSimpleRows(newestRows(visibleRows("items", cls), "日付"), "items");
+        }
       };
 
       const originalRenderListPage = renderListPage;
       renderListPage = function() {
         originalRenderListPage();
-        if (document.body.dataset.page !== "announcements") return;
+        const page = document.body.dataset.page;
         const box = $("mainList");
         if (!box) return;
-        const rows = newestRows(visibleRows("announcements", selectedClass), "日付");
-        box.innerHTML = rows.length ? rows.map(r => noticeCard(r)).join("") : emptyState("お知らせはありません。");
+
+        if (page === "announcements") {
+          const rows = newestRows(visibleRows("announcements", selectedClass), "日付");
+          box.innerHTML = rows.length ? rows.map(noticeCard).join("") : emptyState("お知らせはありません。");
+        }
+
+        if (page === "links") {
+          box.innerHTML = renderSimpleRows(newestRows(visibleRows("links", selectedClass), "作成日時"), "links");
+        }
       };
+
+      if (typeof rowsForEdit === "function") {
+        const originalRowsForEdit = rowsForEdit;
+        rowsForEdit = function() {
+          const rows = originalRowsForEdit();
+          if (selectedEditType === "announcements") return newestRows(rows, "日付");
+          if (selectedEditType === "items") return newestRows(rows, "日付");
+          if (selectedEditType === "links") return newestRows(rows, "作成日時");
+          return rows;
+        };
+      }
     } catch (error) {
-      console.warn('order fix skipped', error);
+      console.warn("2Base order fix skipped", error);
     }
   }
 
+  function installBrandIcon() {
+    document.querySelectorAll(".brand-mark").forEach(mark => {
+      if (mark.querySelector(".brand-icon-image")) return;
+      mark.textContent = "";
+      const image = document.createElement("img");
+      image.className = "brand-icon-image";
+      image.src = "icons/brand-icon.svg?v=1";
+      image.alt = "2Base";
+      image.width = 64;
+      image.height = 64;
+      mark.appendChild(image);
+    });
+
+    let favicon = document.querySelector('link[rel="icon"]');
+    if (!favicon) {
+      favicon = document.createElement("link");
+      favicon.rel = "icon";
+      document.head.appendChild(favicon);
+    }
+    favicon.type = "image/svg+xml";
+    favicon.href = "icons/brand-icon.svg?v=1";
+  }
+
   function apply(theme){
-    document.documentElement.dataset.theme = theme || defaultTheme;
-    localStorage.setItem(key, theme || defaultTheme);
-    document.querySelectorAll('.theme-select').forEach(sel => sel.value = theme || defaultTheme);
+    const value = theme || defaultTheme;
+    document.documentElement.dataset.theme = value;
+    localStorage.setItem(key, value);
+    document.querySelectorAll(".theme-select").forEach(sel => { sel.value = value; });
   }
 
   function init(){
-    loadResponsiveCss();
+    loadSiteCss();
     installOrderFix();
+
     const saved = localStorage.getItem(key) || defaultTheme;
     apply(saved);
-    document.querySelectorAll('.theme-select').forEach(sel => {
+    document.querySelectorAll(".theme-select").forEach(sel => {
       sel.value = saved;
-      sel.addEventListener('change', () => apply(sel.value));
+      if (sel.dataset.themeBound === "true") return;
+      sel.dataset.themeBound = "true";
+      sel.addEventListener("change", () => apply(sel.value));
     });
+
+    // app-core.js の applySiteIdentity() 実行後に数字の「2」をロゴへ置き換えます。
+    setTimeout(installBrandIcon, 0);
+    window.addEventListener("pageshow", installBrandIcon);
+    window.addEventListener("grade2:data-updated", installBrandIcon);
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-  else init();
+  installServiceWorkerRedirect();
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
 })();
