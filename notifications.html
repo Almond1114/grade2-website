@@ -4,17 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>通知 | 2Base</title>
-  <meta name="description" content="2学年総合web。時間割・提出物・テスト予定・お知らせを確認できます。" />
+  <meta name="description" content="2学年総合web。通知設定とテスト送信を管理します。" />
   <meta name="theme-color" content="#ffffff" />
-  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="manifest" href="manifest.webmanifest?v=2" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="icon" type="image/svg+xml" href="icons/brand-icon.svg?v=1" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body data-page="notifications">
   <header class="site-header">
     <div class="page-shell topbar">
-      <a class="brand" href="index.html"><span class="brand-mark">2</span><span class="brand-text"><strong>2Base</strong><small>2学年総合web</small></span></a>
-      <nav class="nav" aria-label="メインメニュー"><a class="" href="index.html">ホーム</a><a class="" href="classes.html">クラス</a><a class="" href="tests.html">テスト</a><a class="" href="homework.html">提出物</a><a class="" href="announcements.html">お知らせ</a><a class="" href="links.html">リンク</a><a class="" href="edit.html">編集</a><a class="active" href="notifications.html">通知</a></nav>
+      <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">2</span><span class="brand-text"><strong>2Base</strong><small>2学年総合web</small></span></a>
+      <nav class="nav" aria-label="メインメニュー"><a href="index.html">ホーム</a><a href="classes.html">クラス</a><a href="tests.html">テスト</a><a href="homework.html">提出物</a><a href="announcements.html">お知らせ</a><a href="links.html">リンク</a><a href="edit.html">編集</a><a class="active" href="notifications.html">通知</a></nav>
       <div class="header-tools">
         <select class="class-select" aria-label="表示クラス"></select>
         <select class="theme-select" aria-label="テーマ選択">
@@ -30,24 +31,31 @@
   </header>
 
   <main class="page-shell">
-    <section class="page-title"><p class="eyebrow">Notifications</p><h1>通知設定</h1><p>通知許可、Firebase Push登録、テスト送信をここで管理します。</p><p id="connectionBanner" class="connection-banner">読み込み中...</p></section>
+    <section class="page-title">
+      <p class="eyebrow">Notifications</p>
+      <h1>通知設定</h1>
+      <p>この端末の通知許可、Push登録、テスト送信を管理します。</p>
+      <p id="connectionBanner" class="connection-banner">読み込み中...</p>
+    </section>
+
     <section class="section notification-grid">
       <article class="panel notification-panel">
-        <span class="mini-label">通知設定</span>
-        <p class="muted">スマホでは、まずこの端末で通知を許可します。iPhoneはホーム画面に追加した2Baseから開くと通知が安定します。</p>
+        <span class="mini-label">端末通知</span>
+        <p class="muted">iPhoneはSafariの共有ボタンからホーム画面に追加し、ホーム画面の2Baseから開いてください。Androidは通常のブラウザでも設定できます。</p>
         <div class="notify-controls">
           <label>毎日の通知時間<br><input id="notifyTime" type="time" value="20:00"></label>
           <button class="submit-btn" id="enableNotificationsBtn" type="button">通知を許可して始める</button>
           <button class="ghost-btn" id="scheduleNotificationsBtn" type="button">通知時間を更新</button>
-          <button class="ghost-btn" id="testNotificationBtn" type="button">テスト通知</button>
+          <button class="ghost-btn" id="testNotificationBtn" type="button">端末テスト通知</button>
         </div>
-        <p id="notificationStatus" class="status-text">サイト起動時に通知設定を案内します。</p>
+        <p id="notificationStatus" class="status-text">通知状態を確認中...</p>
       </article>
+
       <article class="panel notification-panel">
-        <span class="mini-label">Firebase Web Push通知</span>
-        <p class="muted">Android/PCはFirebase Push登録できます。iPhoneはホーム画面アプリの通知許可を使います。</p>
+        <span class="mini-label">Firebase Push</span>
+        <p class="muted">対応ブラウザでは、この端末を登録するとサイトを閉じていても更新通知を受け取れます。</p>
         <div class="notify-controls">
-          <button class="ghost-btn" id="registerPushBtn" type="button">再登録</button>
+          <button class="ghost-btn" id="registerPushBtn" type="button">この端末を登録</button>
           <button class="ghost-btn" id="sendPushTestBtn" type="button">Firebaseテスト送信</button>
           <button class="ghost-btn" id="unregisterPushBtn" type="button">この端末を解除</button>
         </div>
@@ -56,25 +64,27 @@
       </article>
     </section>
   </main>
+
   <div id="startupOverlay" class="startup-overlay" role="dialog" aria-modal="true" aria-labelledby="startupTitle">
     <div class="startup-card">
       <p class="eyebrow">2学年総合web</p>
       <h2 id="startupTitle">通知を許可して始めよう</h2>
-      <p>このボタンを押して通知を許可します。iPhoneはSafariの共有ボタンからホーム画面に追加して、ホーム画面の2Baseから開いてください。</p>
-      <div class="startup-checks"><span>✓ 明日の準備通知</span><span>✓ スマホ通知の確認</span><span>✓ サイト内編集に対応</span></div>
+      <p>通知を許可し、対応している場合はこの端末をPush通知へ登録します。</p>
+      <div class="startup-checks"><span>✓ 明日の準備通知</span><span>✓ 更新通知</span><span>✓ テスト通知</span></div>
       <button class="submit-btn" id="startAppBtn" type="button">通知を許可して始める</button>
       <button class="ghost-btn" id="skipSetupBtn" type="button">あとで設定する</button>
       <p id="startupStatus" class="status-text">通知許可の画面が出たら「許可」を選んでください。</p>
     </div>
   </div>
+
   <footer class="site-footer"><div class="page-shell">© 2026 2Base / GitHub Pages + Google Sheets</div></footer>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging-compat.js"></script>
-  <script src="app-config.js?v=notification-mobile1"></script>
-  <script src="theme.js?v=notification-mobile1"></script>
-  <script src="app-core.js?v=notification-mobile1"></script>
-  <script src="notifications-web.js?v=notification-mobile1"></script>
-  <script src="mobile-notification-fix.js?v=1"></script>
+  <script src="app-config.js?v=notify-fix2"></script>
+  <script src="theme.js?v=site-fix3"></script>
+  <script src="app-core.js?v=site-fix3"></script>
+  <script src="notifications-web.js?v=notify-fix2"></script>
+  <script src="mobile-notification-fix.js?v=2"></script>
 </body>
 </html>
