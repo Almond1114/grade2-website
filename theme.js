@@ -1,4 +1,8 @@
 (function(){
+  window.GRADE2_CONFIG = window.GRADE2_CONFIG || {};
+  window.GRADE2_CONFIG.DATA_CACHE_MAX_AGE = 60 * 1000;
+  window.GRADE2_CONFIG.APP_VERSION = "2.1.0-mobile-notify-logo";
+
   const key = "grade2Theme";
   const defaultTheme = "clear";
 
@@ -178,7 +182,6 @@
       sel.addEventListener("change", () => apply(sel.value));
     });
 
-    // app-core.js の applySiteIdentity() 実行後に数字の「2」をロゴへ置き換えます。
     setTimeout(installBrandIcon, 0);
     window.addEventListener("pageshow", installBrandIcon);
     window.addEventListener("grade2:data-updated", installBrandIcon);
