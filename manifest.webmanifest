@@ -3,13 +3,14 @@
   "name": "2Base",
   "short_name": "2Base",
   "description": "2学年総合web。時間割・提出物・テスト予定・通知サイト",
-  "start_url": "index.html?v=pwa-notification1",
+  "start_url": "index.html?v=site-fix3",
   "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "icons/brand-icon.svg?v=1", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ]
 }
