@@ -1,25 +1,19 @@
 (function(){
   window.GRADE2_CONFIG = window.GRADE2_CONFIG || {};
   window.GRADE2_CONFIG.DATA_CACHE_MAX_AGE = 60 * 1000;
-  window.GRADE2_CONFIG.APP_VERSION = "2.1.0-mobile-notify-logo";
+  window.GRADE2_CONFIG.APP_VERSION = "2.2.0-stylish-ui";
 
   const key = "grade2Theme";
   const defaultTheme = "clear";
 
   function normalizeSwPath(value) {
-    try {
-      return new URL(value, location.href).pathname;
-    } catch (_) {
-      return String(value || "");
-    }
+    try { return new URL(value, location.href).pathname; }
+    catch (_) { return String(value || ""); }
   }
 
-  // app-core.js と notifications-web.js が別々のService Workerを同じscopeへ登録していたため、
-  // すべてFirebase対応の統合Workerへ揃えます。
   function installServiceWorkerRedirect() {
     if (!("serviceWorker" in navigator) || window.__grade2SwRedirectInstalled) return;
     window.__grade2SwRedirectInstalled = true;
-
     const originalRegister = navigator.serviceWorker.register.bind(navigator.serviceWorker);
     navigator.serviceWorker.register = function(scriptURL, options) {
       const path = normalizeSwPath(scriptURL);
@@ -40,9 +34,10 @@
   }
 
   function loadSiteCss(){
-    loadCssOnce("responsive-ui.css?v=3", "responsive-ui");
-    loadCssOnce("mobile-editor-fix.css?v=2", "mobile-editor-fix");
-    loadCssOnce("brand-icon.css?v=1", "brand-icon");
+    loadCssOnce("responsive-ui.css?v=4", "responsive-ui");
+    loadCssOnce("mobile-editor-fix.css?v=3", "mobile-editor-fix");
+    loadCssOnce("brand-icon.css?v=2", "brand-icon");
+    loadCssOnce("stylish-ui.css?v=1", "stylish-ui");
   }
 
   function parseTimestamp(value) {
@@ -62,13 +57,11 @@
         if (createdB === null) return -1;
         if (createdB !== createdA) return createdB - createdA;
       }
-
       const dateA = typeof parseDate === "function" ? parseDate(a[dateKey]) : null;
       const dateB = typeof parseDate === "function" ? parseDate(b[dateKey]) : null;
       const timeA = dateA ? dateA.getTime() : -1;
       const timeB = dateB ? dateB.getTime() : -1;
       if (timeB !== timeA) return timeB - timeA;
-
       return Number(b.__rowNumber || 0) - Number(a.__rowNumber || 0);
     });
   }
@@ -85,7 +78,7 @@
         if (!document.body.matches('[data-page="home"]')) return;
         const box = $("homeNoticeList");
         if (!box) return;
-        const rows = newestRows(visibleRows("announcements", selectedClass), "日付").slice(0, 4);
+        const rows = newestRows(visibleRows("announcements", selectedClass), "日付").slice(0, 6);
         box.innerHTML = rows.length ? rows.map(noticeCard).join("") : emptyState("お知らせはありません。");
       };
 
@@ -94,17 +87,13 @@
         originalRenderClassPage();
         if (!document.body.matches('[data-page="class"]')) return;
         const cls = getCurrentPageClass();
-
         const noticeBox = $("classAnnouncementList");
         if (noticeBox) {
-          const notices = newestRows(visibleRows("announcements", cls), "日付").slice(0, 4);
+          const notices = newestRows(visibleRows("announcements", cls), "日付").slice(0, 6);
           noticeBox.innerHTML = notices.length ? notices.map(noticeCard).join("") : emptyState("お知らせはありません。");
         }
-
         const itemBox = $("classItemList");
-        if (itemBox) {
-          itemBox.innerHTML = renderSimpleRows(newestRows(visibleRows("items", cls), "日付"), "items");
-        }
+        if (itemBox) itemBox.innerHTML = renderSimpleRows(newestRows(visibleRows("items", cls), "日付"), "items");
       };
 
       const originalRenderListPage = renderListPage;
@@ -113,15 +102,11 @@
         const page = document.body.dataset.page;
         const box = $("mainList");
         if (!box) return;
-
         if (page === "announcements") {
           const rows = newestRows(visibleRows("announcements", selectedClass), "日付");
           box.innerHTML = rows.length ? rows.map(noticeCard).join("") : emptyState("お知らせはありません。");
         }
-
-        if (page === "links") {
-          box.innerHTML = renderSimpleRows(newestRows(visibleRows("links", selectedClass), "作成日時"), "links");
-        }
+        if (page === "links") box.innerHTML = renderSimpleRows(newestRows(visibleRows("links", selectedClass), "作成日時"), "links");
       };
 
       if (typeof rowsForEdit === "function") {
@@ -134,9 +119,7 @@
           return rows;
         };
       }
-    } catch (error) {
-      console.warn("2Base order fix skipped", error);
-    }
+    } catch (error) { console.warn("2Base order fix skipped", error); }
   }
 
   function installBrandIcon() {
@@ -145,13 +128,12 @@
       mark.textContent = "";
       const image = document.createElement("img");
       image.className = "brand-icon-image";
-      image.src = "icons/brand-icon.svg?v=1";
+      image.src = "icons/brand-icon.svg?v=2";
       image.alt = "2Base";
       image.width = 64;
       image.height = 64;
       mark.appendChild(image);
     });
-
     let favicon = document.querySelector('link[rel="icon"]');
     if (!favicon) {
       favicon = document.createElement("link");
@@ -159,7 +141,7 @@
       document.head.appendChild(favicon);
     }
     favicon.type = "image/svg+xml";
-    favicon.href = "icons/brand-icon.svg?v=1";
+    favicon.href = "icons/brand-icon.svg?v=2";
   }
 
   function apply(theme){
@@ -172,7 +154,6 @@
   function init(){
     loadSiteCss();
     installOrderFix();
-
     const saved = localStorage.getItem(key) || defaultTheme;
     apply(saved);
     document.querySelectorAll(".theme-select").forEach(sel => {
@@ -181,17 +162,12 @@
       sel.dataset.themeBound = "true";
       sel.addEventListener("change", () => apply(sel.value));
     });
-
     setTimeout(installBrandIcon, 0);
     window.addEventListener("pageshow", installBrandIcon);
     window.addEventListener("grade2:data-updated", installBrandIcon);
   }
 
   installServiceWorkerRedirect();
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
 })();
