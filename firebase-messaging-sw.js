@@ -1,4 +1,4 @@
-const SITE_CACHE = "grade2-firebase-pwa-v3-20260712";
+const SITE_CACHE = "grade2-firebase-pwa-v4-stylish-20260712";
 const SITE_ASSETS = [
   "./",
   "./index.html",
@@ -14,6 +14,7 @@ const SITE_ASSETS = [
   "./responsive-ui.css",
   "./mobile-editor-fix.css",
   "./brand-icon.css",
+  "./stylish-ui.css",
   "./theme.js",
   "./app-config.js",
   "./app-core.js",
@@ -71,9 +72,7 @@ try {
     const messaging = firebase.messaging();
 
     messaging.onBackgroundMessage(payload => {
-      // notification payload はFCM側が自動表示するため、手動表示して二重通知にしません。
       if (payload && payload.notification) return;
-
       const title = payload?.data?.title || "2Base";
       const options = {
         body: payload?.data?.body || "更新通知を受信しました。",
@@ -92,7 +91,6 @@ try {
 
 self.addEventListener("notificationclick", event => {
   event.notification.close();
-
   const screen = event.notification?.data?.screen || "home";
   const map = {
     home: "index.html",
