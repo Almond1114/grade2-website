@@ -1,4 +1,4 @@
-const SITE_CACHE = "grade2-firebase-pwa-v4-stylish-20260712";
+const SITE_CACHE = "grade2-firebase-pwa-v5-exceptional-20260712";
 const SITE_ASSETS = [
   "./",
   "./index.html",
@@ -15,7 +15,9 @@ const SITE_ASSETS = [
   "./mobile-editor-fix.css",
   "./brand-icon.css",
   "./stylish-ui.css",
+  "./exceptional-ui.css",
   "./theme.js",
+  "./ux-enhancements.js",
   "./app-config.js",
   "./app-core.js",
   "./editor-add.js",
