@@ -1,7 +1,7 @@
 (function(){
   window.GRADE2_CONFIG = window.GRADE2_CONFIG || {};
   window.GRADE2_CONFIG.DATA_CACHE_MAX_AGE = 60 * 1000;
-  window.GRADE2_CONFIG.APP_VERSION = "2.3.0-exceptional-ui";
+  window.GRADE2_CONFIG.APP_VERSION = "3.0.0-live-system";
 
   const key = "grade2Theme";
   const defaultTheme = "clear";
@@ -41,12 +41,14 @@
   }
 
   function loadSiteAssets(){
-    loadCssOnce("responsive-ui.css?v=5", "responsive-ui");
-    loadCssOnce("mobile-editor-fix.css?v=4", "mobile-editor-fix");
-    loadCssOnce("brand-icon.css?v=3", "brand-icon");
-    loadCssOnce("stylish-ui.css?v=3", "stylish-ui");
-    loadCssOnce("exceptional-ui.css?v=1", "exceptional-ui");
-    loadScriptOnce("ux-enhancements.js?v=1", "ux-enhancements");
+    loadCssOnce("responsive-ui.css?v=6", "responsive-ui");
+    loadCssOnce("mobile-editor-fix.css?v=5", "mobile-editor-fix");
+    loadCssOnce("brand-icon.css?v=4", "brand-icon");
+    loadCssOnce("stylish-ui.css?v=4", "stylish-ui");
+    loadCssOnce("exceptional-ui.css?v=2", "exceptional-ui");
+    loadCssOnce("live-system-ui.css?v=1", "live-system-ui");
+    loadScriptOnce("ux-enhancements.js?v=2", "ux-enhancements");
+    loadScriptOnce("live-system-ui.js?v=1", "live-system-ui");
   }
 
   function parseTimestamp(value) {
@@ -137,7 +139,7 @@
       mark.textContent = "";
       const image = document.createElement("img");
       image.className = "brand-icon-image";
-      image.src = "icons/brand-icon.svg?v=3";
+      image.src = "icons/brand-icon.svg?v=4";
       image.alt = "2Base";
       image.width = 64;
       image.height = 64;
@@ -150,7 +152,7 @@
       document.head.appendChild(favicon);
     }
     favicon.type = "image/svg+xml";
-    favicon.href = "icons/brand-icon.svg?v=3";
+    favicon.href = "icons/brand-icon.svg?v=4";
   }
 
   function apply(theme){
