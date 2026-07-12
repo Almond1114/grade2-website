@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">2Base</title>
+  <desc id="desc">重なった二枚のカードと小さな光を組み合わせたシンプルな2Baseアイコン</desc>
+  <defs>
+    <linearGradient id="g" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+  <rect x="7" y="7" width="50" height="50" rx="16" fill="url(#g)"/>
+  <rect x="18" y="16" width="28" height="24" rx="8" fill="#fff" fill-opacity=".96"/>
+  <path d="M22 25h20M22 31h13" fill="none" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/>
+  <path d="M20 39c0-3.3 2.7-6 6-6h20v5c0 5.5-4.5 10-10 10H26c-3.3 0-6-2.7-6-6v-3Z" fill="#dbeafe"/>
+  <circle cx="46" cy="18" r="4" fill="#fef08a"/>
+</svg>
