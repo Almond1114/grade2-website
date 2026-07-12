@@ -1,0 +1,102 @@
+/* 2Base Live System UI v1 */
+.connection-banner{
+  position:relative;
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:12px;
+  min-height:58px;
+  overflow:hidden;
+  border:1px solid #d7e1ec;
+  background:linear-gradient(180deg,#fff,#f8fafc);
+  color:#64748b;
+  box-shadow:0 10px 28px rgba(15,23,42,.06);
+}
+.connection-banner::before{
+  content:"";
+  width:10px;height:10px;border-radius:50%;
+  background:#94a3b8;
+  box-shadow:0 0 0 5px rgba(148,163,184,.12);
+}
+.connection-banner::after{
+  content:attr(data-sync-meta);
+  font-size:11px;
+  font-weight:850;
+  letter-spacing:.02em;
+  color:#64748b;
+  white-space:nowrap;
+}
+.connection-banner.live{
+  border-color:rgba(16,185,129,.28);
+  background:linear-gradient(180deg,#f5fff9,#ecfdf5);
+  color:#065f46;
+}
+.connection-banner.live::before{
+  background:#10b981;
+  box-shadow:0 0 0 5px rgba(16,185,129,.13),0 0 18px rgba(16,185,129,.55);
+  animation:livePulse 2.2s ease-in-out infinite;
+}
+.connection-banner.loading{
+  border-color:rgba(37,99,235,.22);
+  background:linear-gradient(180deg,#f8fbff,#eff6ff);
+  color:#1d4ed8;
+}
+.connection-banner.loading::before{
+  background:#2563eb;
+  box-shadow:0 0 0 5px rgba(37,99,235,.12);
+  animation:syncBlink 1s ease-in-out infinite;
+}
+.connection-banner.cached,
+.connection-banner.cached-error{
+  border-color:rgba(245,158,11,.27);
+  background:linear-gradient(180deg,#fffdf7,#fffbeb);
+  color:#92400e;
+}
+.connection-banner.cached::before,
+.connection-banner.cached-error::before{background:#f59e0b;box-shadow:0 0 0 5px rgba(245,158,11,.12)}
+.connection-banner.offline{
+  border-color:rgba(239,68,68,.28);
+  background:linear-gradient(180deg,#fff9f9,#fef2f2);
+  color:#991b1b;
+}
+.connection-banner.offline::before{background:#ef4444;box-shadow:0 0 0 5px rgba(239,68,68,.12)}
+.connection-banner .sync-title{font-size:13px;font-weight:950;letter-spacing:.04em}
+.connection-banner .sync-detail{font-size:12px;font-weight:760;color:inherit;opacity:.76}
+.connection-banner .sync-copy{display:flex;flex-direction:column;gap:1px;min-width:0}
+.connection-banner .sync-action{
+  border:0;border-radius:9px;padding:8px 10px;background:rgba(255,255,255,.72);
+  color:inherit;font:inherit;font-size:11px;font-weight:900;cursor:pointer;
+}
+.connection-banner .sync-action:hover{transform:translateY(-1px)}
+
+#syncToast{
+  position:fixed;right:22px;bottom:22px;z-index:150;
+  display:flex;align-items:center;gap:10px;
+  max-width:min(420px,calc(100vw - 32px));
+  padding:13px 16px;border-radius:14px;
+  background:#071a33;color:#fff;
+  box-shadow:0 20px 50px rgba(3,15,31,.28);
+  opacity:0;transform:translateY(16px) scale(.98);pointer-events:none;
+  transition:.22s cubic-bezier(.2,.8,.2,1);
+}
+#syncToast.show{opacity:1;transform:none}
+#syncToast.success{background:#064e3b}
+#syncToast.error{background:#7f1d1d}
+#syncToast::before{content:"";width:9px;height:9px;border-radius:50%;background:#34d399;box-shadow:0 0 0 4px rgba(52,211,153,.15)}
+#syncToast.error::before{background:#f87171;box-shadow:0 0 0 4px rgba(248,113,113,.15)}
+
+body.is-syncing .submit-btn{position:relative;pointer-events:none;opacity:.78}
+body.is-syncing .submit-btn::after{content:"";width:14px;height:14px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+
+@keyframes livePulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.78);opacity:.68}}
+@keyframes syncBlink{0%,100%{opacity:.35}50%{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:700px){
+  .connection-banner{grid-template-columns:auto 1fr;gap:10px;padding:12px 13px;min-height:54px}
+  .connection-banner::after{grid-column:2;font-size:10px;white-space:normal}
+  .connection-banner .sync-action{grid-column:1/-1;width:100%;margin-top:2px}
+  #syncToast{right:12px;bottom:92px;left:12px;max-width:none}
+}
+
+@media(prefers-reduced-motion:reduce){.connection-banner.live::before,.connection-banner.loading::before,body.is-syncing .submit-btn::after{animation:none}}
