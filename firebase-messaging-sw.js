@@ -1,4 +1,4 @@
-const SITE_CACHE = "grade2-firebase-pwa-v6-live-system-20260712";
+const SITE_CACHE = "grade2-firebase-pwa-v7-ten-themes-20260716";
 const SITE_ASSETS = [
   "./",
   "./index.html",
@@ -17,6 +17,7 @@ const SITE_ASSETS = [
   "./stylish-ui.css",
   "./exceptional-ui.css",
   "./live-system-ui.css",
+  "./theme-pack.css",
   "./theme.js",
   "./ux-enhancements.js",
   "./live-system-ui.js",
