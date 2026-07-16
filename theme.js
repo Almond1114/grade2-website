@@ -1,10 +1,23 @@
 (function(){
   window.GRADE2_CONFIG = window.GRADE2_CONFIG || {};
   window.GRADE2_CONFIG.DATA_CACHE_MAX_AGE = 60 * 1000;
-  window.GRADE2_CONFIG.APP_VERSION = "3.0.0-live-system";
+  window.GRADE2_CONFIG.APP_VERSION = "3.1.0-ten-themes";
 
   const key = "grade2Theme";
-  const defaultTheme = "clear";
+  const defaultTheme = "atelier";
+  const THEMES = [
+    ["atelier", "Atelier — Editorial"],
+    ["midnight", "Midnight — Control Room"],
+    ["paper", "Paper — Notebook"],
+    ["terminal", "Terminal — Technical"],
+    ["sakura", "Sakura — Japanese Soft"],
+    ["ocean", "Ocean — Marine"],
+    ["bauhaus", "Bauhaus — Graphic"],
+    ["glass", "Glass — Luminous"],
+    ["mono", "Mono — Swiss Grid"],
+    ["sunset", "Sunset — Cinematic"]
+  ];
+  const validThemes = new Set(THEMES.map(item => item[0]));
 
   function normalizeSwPath(value) {
     try { return new URL(value, location.href).pathname; }
@@ -41,14 +54,15 @@
   }
 
   function loadSiteAssets(){
-    loadCssOnce("responsive-ui.css?v=6", "responsive-ui");
-    loadCssOnce("mobile-editor-fix.css?v=5", "mobile-editor-fix");
-    loadCssOnce("brand-icon.css?v=4", "brand-icon");
-    loadCssOnce("stylish-ui.css?v=4", "stylish-ui");
-    loadCssOnce("exceptional-ui.css?v=2", "exceptional-ui");
-    loadCssOnce("live-system-ui.css?v=1", "live-system-ui");
-    loadScriptOnce("ux-enhancements.js?v=2", "ux-enhancements");
-    loadScriptOnce("live-system-ui.js?v=1", "live-system-ui");
+    loadCssOnce("responsive-ui.css?v=7", "responsive-ui");
+    loadCssOnce("mobile-editor-fix.css?v=6", "mobile-editor-fix");
+    loadCssOnce("brand-icon.css?v=5", "brand-icon");
+    loadCssOnce("stylish-ui.css?v=5", "stylish-ui");
+    loadCssOnce("exceptional-ui.css?v=3", "exceptional-ui");
+    loadCssOnce("live-system-ui.css?v=2", "live-system-ui");
+    loadCssOnce("theme-pack.css?v=1", "theme-pack");
+    loadScriptOnce("ux-enhancements.js?v=3", "ux-enhancements");
+    loadScriptOnce("live-system-ui.js?v=2", "live-system-ui");
   }
 
   function parseTimestamp(value) {
@@ -139,7 +153,7 @@
       mark.textContent = "";
       const image = document.createElement("img");
       image.className = "brand-icon-image";
-      image.src = "icons/brand-icon.svg?v=4";
+      image.src = "icons/brand-icon.svg?v=5";
       image.alt = "2Base";
       image.width = 64;
       image.height = 64;
@@ -152,23 +166,52 @@
       document.head.appendChild(favicon);
     }
     favicon.type = "image/svg+xml";
-    favicon.href = "icons/brand-icon.svg?v=4";
+    favicon.href = "icons/brand-icon.svg?v=5";
   }
 
-  function apply(theme){
-    const value = theme || defaultTheme;
+  function populateThemeSelects(){
+    document.querySelectorAll(".theme-select").forEach(select => {
+      select.innerHTML = THEMES.map(([value, label]) => `<option value="${value}">${label}</option>`).join("");
+      select.setAttribute("aria-label", "UIテーマを選択");
+      select.title = "UIテーマを切り替える";
+    });
+  }
+
+  function updateThemeColor(theme){
+    const colors = {
+      atelier:"#14213d", midnight:"#05070b", paper:"#fffef9", terminal:"#030806", sakura:"#8e3657",
+      ocean:"#007f91", bauhaus:"#f5d92f", glass:"#4f46e5", mono:"#ffffff", sunset:"#8b2d55"
+    };
+    let meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.name = "theme-color";
+      document.head.appendChild(meta);
+    }
+    meta.content = colors[theme] || colors[defaultTheme];
+  }
+
+  function apply(theme, animate = true){
+    const value = validThemes.has(theme) ? theme : defaultTheme;
+    if (animate && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      document.documentElement.classList.add("theme-switching");
+      window.setTimeout(() => document.documentElement.classList.remove("theme-switching"), 280);
+    }
     document.documentElement.dataset.theme = value;
     localStorage.setItem(key, value);
+    updateThemeColor(value);
     document.querySelectorAll(".theme-select").forEach(sel => { sel.value = value; });
+    window.dispatchEvent(new CustomEvent("grade2:theme-changed", { detail: { theme: value } }));
   }
 
   function init(){
     loadSiteAssets();
     installOrderFix();
-    const saved = localStorage.getItem(key) || defaultTheme;
-    apply(saved);
+    populateThemeSelects();
+    const stored = localStorage.getItem(key);
+    const saved = validThemes.has(stored) ? stored : defaultTheme;
+    apply(saved, false);
     document.querySelectorAll(".theme-select").forEach(sel => {
-      sel.value = saved;
       if (sel.dataset.themeBound === "true") return;
       sel.dataset.themeBound = "true";
       sel.addEventListener("change", () => apply(sel.value));
