@@ -1,0 +1,89 @@
+/* 2Base Theme Pack — 10 deliberately different systems */
+:root{--theme-ease:220ms cubic-bezier(.2,.8,.2,1)}
+html.theme-switching *,html.theme-switching *::before,html.theme-switching *::after{transition:background-color var(--theme-ease),border-color var(--theme-ease),color var(--theme-ease),box-shadow var(--theme-ease),transform var(--theme-ease)!important}
+.theme-select{min-width:168px}
+
+/* 1. ATELIER — editorial navy, balanced and premium */
+:root[data-theme="atelier"]{--bg:#f3f0e9;--bg-soft:#fbfaf6;--surface:#fffdfa;--surface-strong:#fff;--text:#14213d;--muted:#6b7280;--line:#d8d1c4;--accent:#0b5fff;--accent-2:#16324f;--accent-soft:#e9f0ff;--shadow:0 18px 48px rgba(20,33,61,.10);--radius:18px}
+:root[data-theme="atelier"] body{background:linear-gradient(90deg,rgba(20,33,61,.025) 1px,transparent 1px),linear-gradient(#f5f2eb,#f8f7f3);background-size:28px 28px}
+:root[data-theme="atelier"] .site-header{background:#14213d}
+:root[data-theme="atelier"] .content-card,:root[data-theme="atelier"] .list-card,:root[data-theme="atelier"] .class-card{border-width:1px;border-radius:14px}
+:root[data-theme="atelier"] h1,:root[data-theme="atelier"] h2{font-family:Georgia,"Times New Roman",serif;font-weight:700}
+
+/* 2. MIDNIGHT — cinematic dark control room */
+:root[data-theme="midnight"]{--bg:#05070b;--bg-soft:#090d14;--surface:rgba(15,23,36,.82);--surface-strong:#111827;--text:#edf6ff;--muted:#8fa2b8;--line:rgba(139,184,255,.16);--accent:#5ee7ff;--accent-2:#8b5cf6;--accent-soft:rgba(94,231,255,.11);--shadow:0 24px 70px rgba(0,0,0,.42);--radius:22px}
+:root[data-theme="midnight"] body{background:radial-gradient(circle at 80% -10%,rgba(139,92,246,.22),transparent 34%),radial-gradient(circle at 10% 10%,rgba(94,231,255,.13),transparent 28%),#05070b}
+:root[data-theme="midnight"] .site-header{background:rgba(5,7,11,.82);border-bottom:1px solid rgba(94,231,255,.18);backdrop-filter:blur(22px)}
+:root[data-theme="midnight"] .content-card,:root[data-theme="midnight"] .list-card,:root[data-theme="midnight"] .panel,:root[data-theme="midnight"] .editor-card{box-shadow:inset 0 1px rgba(255,255,255,.04),0 24px 70px rgba(0,0,0,.35)}
+:root[data-theme="midnight"] .btn,:root[data-theme="midnight"] .submit-btn{background:linear-gradient(135deg,#00d4ff,#7c3aed)}
+
+/* 3. PAPER — quiet notebook / Japanese stationery */
+:root[data-theme="paper"]{--bg:#f7f4ec;--bg-soft:#fbfaf5;--surface:#fffef9;--surface-strong:#fffefb;--text:#2a2926;--muted:#77736b;--line:#d9d4ca;--accent:#d64b32;--accent-2:#365b7d;--accent-soft:#f7e7e2;--shadow:0 8px 24px rgba(55,48,39,.07);--radius:6px}
+:root[data-theme="paper"] body{background:repeating-linear-gradient(0deg,#f8f5ee 0,#f8f5ee 31px,#ded8cd 32px)}
+:root[data-theme="paper"] .site-header{background:#fffef9;border-bottom:2px solid #2a2926;box-shadow:none}
+:root[data-theme="paper"] .brand,:root[data-theme="paper"] .nav a{color:#2a2926}
+:root[data-theme="paper"] .nav a.active{background:#2a2926;color:#fffef9}
+:root[data-theme="paper"] .content-card,:root[data-theme="paper"] .list-card,:root[data-theme="paper"] .class-card,:root[data-theme="paper"] .panel,:root[data-theme="paper"] .editor-card{box-shadow:3px 4px 0 rgba(42,41,38,.12);border-color:#aaa398}
+:root[data-theme="paper"] .btn,:root[data-theme="paper"] .submit-btn{background:#d64b32;border-radius:4px}
+
+/* 4. TERMINAL — technical green-on-black */
+:root[data-theme="terminal"]{--bg:#030806;--bg-soft:#07100c;--surface:#07110d;--surface-strong:#08150f;--text:#b8ffcf;--muted:#66a879;--line:#1d5b35;--accent:#5cff8d;--accent-2:#00c853;--accent-soft:rgba(92,255,141,.09);--shadow:0 0 0 1px rgba(92,255,141,.08),0 18px 50px rgba(0,0,0,.45);--radius:2px}
+:root[data-theme="terminal"] body{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;background:linear-gradient(rgba(92,255,141,.025) 1px,transparent 1px),#030806;background-size:100% 4px}
+:root[data-theme="terminal"] .site-header{background:#020604;border-bottom:1px solid #5cff8d}
+:root[data-theme="terminal"] .brand-text strong::before{content:"> "}
+:root[data-theme="terminal"] .content-card,:root[data-theme="terminal"] .list-card,:root[data-theme="terminal"] .panel,:root[data-theme="terminal"] .editor-card{border-style:dashed}
+:root[data-theme="terminal"] .btn,:root[data-theme="terminal"] .submit-btn{background:#5cff8d;color:#021007;border-radius:0;box-shadow:0 0 24px rgba(92,255,141,.22)}
+:root[data-theme="terminal"] .mini-label{border-radius:0;border:1px solid #1d5b35}
+
+/* 5. SAKURA — soft Japanese seasonal */
+:root[data-theme="sakura"]{--bg:#fff7fa;--bg-soft:#fffafb;--surface:rgba(255,255,255,.9);--surface-strong:#fff;--text:#422936;--muted:#8d687a;--line:#efd5df;--accent:#d94678;--accent-2:#f09bb6;--accent-soft:#fdebf1;--shadow:0 20px 54px rgba(157,68,102,.13);--radius:30px}
+:root[data-theme="sakura"] body{background:radial-gradient(circle at 12% 4%,#ffe1eb 0 2px,transparent 3px),radial-gradient(circle at 82% 18%,#ffd3e1 0 3px,transparent 4px),linear-gradient(145deg,#fff7fa,#fff)}
+:root[data-theme="sakura"] .site-header{background:linear-gradient(110deg,#6f2944,#b54870)}
+:root[data-theme="sakura"] .content-card,:root[data-theme="sakura"] .list-card,:root[data-theme="sakura"] .panel{border-radius:30px}
+:root[data-theme="sakura"] .btn,:root[data-theme="sakura"] .submit-btn{background:linear-gradient(135deg,#c9366b,#f08cac);border-radius:999px}
+
+/* 6. OCEAN — airy marine interface */
+:root[data-theme="ocean"]{--bg:#eaf8fb;--bg-soft:#f5fdff;--surface:rgba(255,255,255,.82);--surface-strong:#fff;--text:#073b4c;--muted:#477b88;--line:#bfe5ec;--accent:#008db1;--accent-2:#00c2a8;--accent-soft:#dff6fa;--shadow:0 22px 60px rgba(0,111,139,.13);--radius:24px}
+:root[data-theme="ocean"] body{background:radial-gradient(ellipse at 50% -10%,rgba(0,194,168,.22),transparent 42%),linear-gradient(#eaf8fb,#f8fdff)}
+:root[data-theme="ocean"] .site-header{background:linear-gradient(100deg,#006b87,#009f9a)}
+:root[data-theme="ocean"] .content-card,:root[data-theme="ocean"] .list-card,:root[data-theme="ocean"] .panel{backdrop-filter:blur(16px)}
+:root[data-theme="ocean"] .btn,:root[data-theme="ocean"] .submit-btn{background:linear-gradient(135deg,#008db1,#00b89c)}
+
+/* 7. BAUHAUS — bold geometry and primary color */
+:root[data-theme="bauhaus"]{--bg:#f2efe5;--bg-soft:#fffdf5;--surface:#fffdf5;--surface-strong:#fffdf5;--text:#111;--muted:#4b4b4b;--line:#111;--accent:#e63924;--accent-2:#1259b2;--accent-soft:#f5d92f;--shadow:8px 8px 0 #111;--radius:0}
+:root[data-theme="bauhaus"] body{background:linear-gradient(90deg,transparent 49%,rgba(17,17,17,.04) 50%),#f2efe5;background-size:40px 40px;font-family:Arial,Helvetica,sans-serif}
+:root[data-theme="bauhaus"] .site-header{background:#f5d92f;border-bottom:4px solid #111;box-shadow:none}
+:root[data-theme="bauhaus"] .brand,:root[data-theme="bauhaus"] .nav a{color:#111}
+:root[data-theme="bauhaus"] .nav a.active{background:#e63924;color:#fff}
+:root[data-theme="bauhaus"] .content-card,:root[data-theme="bauhaus"] .list-card,:root[data-theme="bauhaus"] .class-card,:root[data-theme="bauhaus"] .panel,:root[data-theme="bauhaus"] .editor-card{border:3px solid #111;box-shadow:8px 8px 0 #111}
+:root[data-theme="bauhaus"] .btn,:root[data-theme="bauhaus"] .submit-btn{background:#1259b2;border:3px solid #111;box-shadow:4px 4px 0 #111;border-radius:0}
+:root[data-theme="bauhaus"] h1,:root[data-theme="bauhaus"] h2{text-transform:uppercase;letter-spacing:-.06em}
+
+/* 8. GLASS — luminous translucent layers */
+:root[data-theme="glass"]{--bg:#dbeafe;--bg-soft:#f5f3ff;--surface:rgba(255,255,255,.42);--surface-strong:rgba(255,255,255,.68);--text:#172554;--muted:#5b6b91;--line:rgba(255,255,255,.62);--accent:#4f46e5;--accent-2:#06b6d4;--accent-soft:rgba(255,255,255,.46);--shadow:0 28px 80px rgba(48,63,159,.18);--radius:28px}
+:root[data-theme="glass"] body{background:radial-gradient(circle at 8% 12%,#7dd3fc 0,transparent 30%),radial-gradient(circle at 88% 8%,#c4b5fd 0,transparent 32%),radial-gradient(circle at 55% 90%,#a7f3d0 0,transparent 35%),#e8efff;background-attachment:fixed}
+:root[data-theme="glass"] .site-header{background:rgba(30,41,92,.55);backdrop-filter:blur(28px) saturate(150%)}
+:root[data-theme="glass"] .content-card,:root[data-theme="glass"] .list-card,:root[data-theme="glass"] .panel,:root[data-theme="glass"] .editor-card,:root[data-theme="glass"] .class-card{backdrop-filter:blur(24px) saturate(130%);border:1px solid rgba(255,255,255,.7)}
+:root[data-theme="glass"] .btn,:root[data-theme="glass"] .submit-btn{background:linear-gradient(135deg,rgba(79,70,229,.92),rgba(6,182,212,.9))}
+
+/* 9. MONO — Swiss monochrome, strict grid */
+:root[data-theme="mono"]{--bg:#f5f5f3;--bg-soft:#fff;--surface:#fff;--surface-strong:#fff;--text:#0a0a0a;--muted:#626262;--line:#b8b8b8;--accent:#0a0a0a;--accent-2:#0a0a0a;--accent-soft:#e7e7e4;--shadow:none;--radius:0}
+:root[data-theme="mono"] body{background:#f5f5f3;font-family:Arial,Helvetica,sans-serif}
+:root[data-theme="mono"] .site-header{background:#fff;border-bottom:1px solid #111;box-shadow:none}
+:root[data-theme="mono"] .brand,:root[data-theme="mono"] .nav a{color:#111}
+:root[data-theme="mono"] .nav a.active{background:#111;color:#fff}
+:root[data-theme="mono"] .content-card,:root[data-theme="mono"] .list-card,:root[data-theme="mono"] .class-card,:root[data-theme="mono"] .panel,:root[data-theme="mono"] .editor-card{border:1px solid #111;box-shadow:none}
+:root[data-theme="mono"] .btn,:root[data-theme="mono"] .submit-btn{background:#111;border-radius:0}
+:root[data-theme="mono"] h1,:root[data-theme="mono"] h2{font-weight:900;letter-spacing:-.07em}
+
+/* 10. SUNSET — warm cinematic gradient */
+:root[data-theme="sunset"]{--bg:#fff0e6;--bg-soft:#fff8f1;--surface:rgba(255,252,247,.9);--surface-strong:#fffaf5;--text:#3f1d2e;--muted:#8d5e67;--line:#f0c5b3;--accent:#e74b3c;--accent-2:#8b3fd1;--accent-soft:#ffe1d7;--shadow:0 24px 65px rgba(125,45,63,.15);--radius:22px}
+:root[data-theme="sunset"] body{background:radial-gradient(circle at 75% 0%,rgba(141,63,209,.22),transparent 34%),radial-gradient(circle at 8% 22%,rgba(255,127,80,.25),transparent 30%),linear-gradient(160deg,#fff0e6,#fff8f1)}
+:root[data-theme="sunset"] .site-header{background:linear-gradient(100deg,#6d214f,#cc3f55 48%,#e9784f)}
+:root[data-theme="sunset"] .btn,:root[data-theme="sunset"] .submit-btn{background:linear-gradient(135deg,#e74b3c,#8b3fd1)}
+:root[data-theme="sunset"] .content-card,:root[data-theme="sunset"] .list-card,:root[data-theme="sunset"] .panel{border-top:3px solid rgba(231,75,60,.55)}
+
+/* shared select polish */
+.theme-select{appearance:auto;font-weight:800;letter-spacing:.01em;cursor:pointer}
+@media(max-width:700px){.theme-select{min-width:0;width:100%!important}.header-tools{grid-template-columns:1fr!important}}
+@media(prefers-reduced-motion:reduce){html.theme-switching *,html.theme-switching *::before,html.theme-switching *::after{transition:none!important}}
