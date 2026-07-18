@@ -1,0 +1,219 @@
+.gyro-mode-selection-enabled .touch-gyro-button {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+.gyro-mode-selector {
+  width: min(720px, 94vw);
+  margin: 16px auto 14px;
+  padding: 14px;
+  border: 1px solid rgba(111, 231, 255, .3);
+  border-radius: 20px;
+  background:
+    linear-gradient(145deg, rgba(8, 24, 48, .88), rgba(18, 9, 42, .88)),
+    rgba(3, 8, 20, .82);
+  box-shadow: inset 0 0 28px rgba(71, 218, 255, .05), 0 14px 34px rgba(0, 0, 0, .24);
+  backdrop-filter: blur(14px);
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.gyro-mode-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 11px;
+  text-align: left;
+}
+
+.gyro-mode-heading div {
+  display: grid;
+  gap: 3px;
+}
+
+.gyro-mode-heading span {
+  color: #72ecff;
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: .18em;
+}
+
+.gyro-mode-heading strong {
+  color: #f0fcff;
+  font-size: 15px;
+  letter-spacing: .05em;
+}
+
+.gyro-mode-heading small {
+  color: rgba(216, 242, 250, .56);
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.gyro-mode-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.gyro-mode-options button {
+  min-width: 0;
+  min-height: 92px;
+  padding: 11px 10px;
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  border: 1px solid rgba(121, 226, 255, .18);
+  border-radius: 15px;
+  color: #e8faff;
+  background: linear-gradient(145deg, rgba(55, 181, 226, .09), rgba(111, 67, 198, .1));
+  box-shadow: inset 0 0 18px rgba(102, 232, 255, .03);
+  text-align: left;
+  touch-action: manipulation;
+  transition: transform 100ms ease, border-color 120ms ease, background 120ms ease, filter 120ms ease;
+}
+
+.gyro-mode-options button b {
+  width: max-content;
+  padding: 4px 7px;
+  border-radius: 999px;
+  color: #07151d;
+  background: linear-gradient(135deg, #6ef1ff, #9faaff);
+  font-size: 8px;
+  letter-spacing: .1em;
+}
+
+.gyro-mode-options button strong {
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.gyro-mode-options button span {
+  color: rgba(214, 241, 249, .66);
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.gyro-mode-options button:active {
+  transform: scale(.97);
+}
+
+.gyro-mode-options button.selected {
+  border-color: rgba(116, 245, 255, .92);
+  background: linear-gradient(145deg, rgba(48, 218, 238, .2), rgba(116, 66, 223, .2));
+  box-shadow: inset 0 0 24px rgba(93, 238, 255, .1), 0 0 22px rgba(72, 222, 255, .11);
+}
+
+.gyro-mode-options button.previous:not(.selected)::after {
+  content: "前回";
+  justify-self: end;
+  margin-top: -17px;
+  color: rgba(181, 228, 239, .52);
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.gyro-mode-options button:disabled {
+  opacity: .34;
+  filter: grayscale(.6);
+}
+
+.gyro-mode-status {
+  min-height: 40px;
+  margin-top: 10px;
+  padding: 9px 11px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid rgba(123, 223, 248, .14);
+  border-radius: 12px;
+  color: rgba(222, 245, 251, .74);
+  background: rgba(2, 8, 20, .38);
+  font-size: 9px;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.gyro-mode-status i {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #8eb3bf;
+  box-shadow: 0 0 12px rgba(142, 179, 191, .4);
+}
+
+.gyro-mode-status[data-kind="waiting"] i {
+  background: #ffd766;
+  box-shadow: 0 0 14px rgba(255, 215, 102, .55);
+  animation: gyro-status-pulse .7s ease-in-out infinite alternate;
+}
+
+.gyro-mode-status[data-kind="ready"] i {
+  background: #64ffc0;
+  box-shadow: 0 0 14px rgba(100, 255, 192, .55);
+}
+
+.gyro-mode-status[data-kind="error"] {
+  border-color: rgba(255, 105, 132, .28);
+  color: rgba(255, 219, 226, .82);
+}
+
+.gyro-mode-status[data-kind="error"] i {
+  background: #ff6984;
+  box-shadow: 0 0 14px rgba(255, 105, 132, .55);
+}
+
+.gyro-mode-selection-enabled #start-button:disabled {
+  opacity: .48;
+  cursor: not-allowed;
+  filter: saturate(.45);
+}
+
+@keyframes gyro-status-pulse {
+  from { opacity: .45; transform: scale(.82); }
+  to { opacity: 1; transform: scale(1.18); }
+}
+
+@media (orientation: landscape) and (max-height: 540px) {
+  .gyro-mode-selector {
+    width: min(760px, 92vw);
+    margin: 8px auto 8px;
+    padding: 10px;
+  }
+
+  .gyro-mode-heading {
+    margin-bottom: 7px;
+  }
+
+  .gyro-mode-options button {
+    min-height: 67px;
+    padding: 7px 9px;
+    gap: 2px;
+  }
+
+  .gyro-mode-options button span {
+    font-size: 8px;
+  }
+
+  .gyro-mode-status {
+    min-height: 31px;
+    margin-top: 7px;
+    padding: 6px 9px;
+  }
+}
+
+@media (max-width: 700px) and (orientation: portrait) {
+  .gyro-mode-options {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gyro-mode-options button,
+  .gyro-mode-status[data-kind="waiting"] i {
+    transition: none;
+    animation: none;
+  }
+}
