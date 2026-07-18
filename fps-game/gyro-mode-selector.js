@@ -223,7 +223,7 @@
       return;
     }
 
-    const relative = quatNormalize(quatMultiply(quatConjugate(fullOriginQuaternion), currentQuaternion));
+    const relative = quatNormalize(quatMultiply(currentQuaternion, quatConjugate(fullOriginQuaternion)));
     const forward = rotateForward(relative);
     let targetYaw = Math.atan2(-forward.x, -forward.z);
     const targetPitch = Math.asin(clamp(forward.y, -1, 1));
