@@ -72,3 +72,6 @@ THREE.Scene.prototype.add = function addWithNeonObstacleEdges(...objects) {
   objects.forEach(attachNeonOutline);
   return originalSceneAdd.apply(this, objects);
 };
+
+// Load the game only after the Scene patch is active.
+await import("./main.js");
