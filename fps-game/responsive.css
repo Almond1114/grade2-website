@@ -1,0 +1,583 @@
+/* Device-specific sizing loaded after style.css. */
+
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+}
+
+html,
+body,
+#game,
+#game canvas {
+  width: 100%;
+  height: 100%;
+}
+
+html,
+body {
+  min-height: 100%;
+  min-height: 100dvh;
+}
+
+body.fps-page {
+  height: 100vh;
+  height: 100dvh;
+  min-height: -webkit-fill-available;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+#game,
+#game canvas {
+  position: fixed;
+  inset: 0;
+}
+
+.mobile-display-note {
+  display: none;
+  margin: 16px 0 0;
+  color: #8fa8ba;
+  font-size: .72rem;
+  line-height: 1.55;
+}
+
+.overlay {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding:
+    max(16px, var(--safe-top))
+    max(16px, var(--safe-right))
+    max(16px, var(--safe-bottom))
+    max(16px, var(--safe-left));
+  overflow: hidden auto;
+}
+
+.overlay-card {
+  max-height: calc(100dvh - max(32px, var(--safe-top) + var(--safe-bottom)));
+}
+
+.top-left {
+  top: max(22px, calc(var(--safe-top) + 12px));
+  left: max(22px, calc(var(--safe-left) + 12px));
+}
+
+.top-right {
+  top: max(22px, calc(var(--safe-top) + 12px));
+  right: max(22px, calc(var(--safe-right) + 12px));
+}
+
+.bottom-left {
+  left: max(22px, calc(var(--safe-left) + 12px));
+  bottom: max(22px, calc(var(--safe-bottom) + 12px));
+}
+
+.bottom-center {
+  bottom: max(22px, calc(var(--safe-bottom) + 12px));
+}
+
+.bottom-right {
+  right: max(22px, calc(var(--safe-right) + 12px));
+  bottom: max(22px, calc(var(--safe-bottom) + 12px));
+}
+
+/* Large desktop and ultrawide monitors. */
+@media (min-width: 1440px) and (min-height: 760px) {
+  .top-left,
+  .top-right {
+    top: max(30px, calc(var(--safe-top) + 20px));
+  }
+
+  .top-left {
+    left: max(30px, calc(var(--safe-left) + 20px));
+    gap: clamp(24px, 2.2vw, 42px);
+    padding: 16px 21px;
+  }
+
+  .top-right {
+    right: max(30px, calc(var(--safe-right) + 20px));
+    padding: 13px 18px;
+  }
+
+  .top-left strong {
+    font-size: clamp(1.2rem, 1.35vw, 1.65rem);
+  }
+
+  .label {
+    font-size: .7rem;
+  }
+
+  .bottom-left {
+    left: max(30px, calc(var(--safe-left) + 20px));
+    bottom: max(30px, calc(var(--safe-bottom) + 20px));
+    width: clamp(300px, 20vw, 390px);
+  }
+
+  .bottom-right {
+    right: max(30px, calc(var(--safe-right) + 20px));
+    bottom: max(30px, calc(var(--safe-bottom) + 20px));
+    min-width: clamp(230px, 15vw, 300px);
+  }
+
+  .bottom-center {
+    bottom: max(30px, calc(var(--safe-bottom) + 20px));
+    width: clamp(360px, 27vw, 520px);
+  }
+
+  .weapon-panel strong {
+    font-size: clamp(2.5rem, 3vw, 3.35rem);
+  }
+
+  .hero-card {
+    width: min(1080px, 88vw);
+  }
+
+  .hero-card h1 {
+    font-size: clamp(7rem, 11vw, 10.5rem);
+  }
+
+  .feature-grid {
+    margin-inline: auto;
+    max-width: 800px;
+  }
+}
+
+/* Normal laptops and tablets in landscape. */
+@media (min-width: 761px) and (max-width: 1199px) {
+  .top-left {
+    left: max(14px, calc(var(--safe-left) + 8px));
+    gap: 18px;
+  }
+
+  .top-right {
+    right: max(14px, calc(var(--safe-right) + 8px));
+    gap: 12px;
+  }
+
+  .bottom-left {
+    width: min(270px, 30vw);
+  }
+
+  .bottom-center {
+    width: min(330px, 36vw);
+  }
+
+  .bottom-right {
+    min-width: 190px;
+  }
+
+  .hero-card {
+    width: min(880px, 92vw);
+    padding: clamp(30px, 5vw, 48px);
+  }
+}
+
+/* Phones and small tablets. */
+@media (max-width: 760px), (pointer: coarse) and (max-width: 1024px) {
+  body::before {
+    opacity: .1;
+  }
+
+  .mobile-display-note {
+    display: block;
+  }
+
+  .desktop-controls {
+    display: none;
+  }
+
+  .panel {
+    backdrop-filter: blur(7px);
+  }
+
+  .top-left {
+    top: max(10px, calc(var(--safe-top) + 6px));
+    left: max(10px, calc(var(--safe-left) + 6px));
+    right: max(10px, calc(var(--safe-right) + 6px));
+    width: auto;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    padding: 9px 11px;
+    text-align: center;
+  }
+
+  .top-left strong {
+    overflow: hidden;
+    font-size: clamp(.82rem, 3.4vw, 1.08rem);
+    letter-spacing: .025em;
+    text-overflow: ellipsis;
+  }
+
+  .top-left .label {
+    font-size: clamp(.48rem, 2vw, .58rem);
+    letter-spacing: .1em;
+  }
+
+  .top-right {
+    display: none;
+  }
+
+  #crosshair,
+  #hitmarker {
+    width: 36px;
+    height: 36px;
+    transform: translate(-50%, -50%) scale(.82);
+  }
+
+  #announcement {
+    top: max(16%, calc(var(--safe-top) + 84px));
+    max-width: 92vw;
+    overflow: hidden;
+    font-size: clamp(1.25rem, 8vw, 2.5rem);
+    letter-spacing: .06em;
+    text-overflow: ellipsis;
+  }
+
+  #toast {
+    top: max(25%, calc(var(--safe-top) + 128px));
+    max-width: 82vw;
+    overflow: hidden;
+    font-size: .72rem;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .bottom-left,
+  .bottom-right {
+    bottom: max(10px, calc(var(--safe-bottom) + 6px));
+  }
+
+  .bottom-left {
+    left: max(10px, calc(var(--safe-left) + 6px));
+    width: calc(56% - 15px - var(--safe-left));
+    padding: 10px 11px;
+  }
+
+  .bottom-right {
+    right: max(10px, calc(var(--safe-right) + 6px));
+    width: calc(44% - 15px - var(--safe-right));
+    min-width: 0;
+    padding: 10px 11px;
+  }
+
+  .bottom-center {
+    bottom: max(102px, calc(var(--safe-bottom) + 96px));
+    width: min(76vw, 370px);
+    padding: 8px 12px;
+  }
+
+  .status-row {
+    margin-bottom: 4px;
+    font-size: clamp(.62rem, 2.6vw, .76rem);
+  }
+
+  .status-row.small {
+    margin-top: 7px;
+    margin-bottom: 3px;
+    font-size: clamp(.5rem, 2vw, .6rem);
+  }
+
+  .bar {
+    height: 8px;
+  }
+
+  .bar.thin {
+    height: 4px;
+  }
+
+  .weapon-panel > span {
+    overflow: hidden;
+    font-size: clamp(.48rem, 2vw, .62rem);
+    letter-spacing: .08em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .weapon-panel > div {
+    margin: 5px 0;
+  }
+
+  .weapon-panel strong {
+    font-size: clamp(1.45rem, 8vw, 2.05rem);
+  }
+
+  .weapon-panel small {
+    font-size: clamp(.68rem, 3vw, .9rem);
+  }
+
+  .overlay {
+    align-items: center;
+    padding:
+      max(10px, var(--safe-top))
+      max(10px, var(--safe-right))
+      max(10px, var(--safe-bottom))
+      max(10px, var(--safe-left));
+  }
+
+  .overlay-card {
+    width: min(100%, 620px);
+    max-height: calc(100dvh - max(20px, var(--safe-top) + var(--safe-bottom)));
+    overflow: hidden auto;
+    padding: clamp(20px, 6vw, 34px);
+    border-radius: 0;
+    clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
+    overscroll-behavior: contain;
+  }
+
+  .hero-card h1 {
+    font-size: clamp(3.25rem, 17vw, 6.2rem);
+    line-height: .83;
+  }
+
+  .eyebrow {
+    margin-bottom: 8px;
+    font-size: clamp(.55rem, 2.4vw, .68rem);
+    letter-spacing: .18em;
+  }
+
+  .lead {
+    margin: 16px auto;
+    font-size: clamp(.86rem, 3.6vw, 1.08rem);
+  }
+
+  .feature-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    margin: 18px 0;
+  }
+
+  .feature-grid div,
+  .result-grid div {
+    padding: 9px 7px;
+  }
+
+  .feature-grid strong,
+  .result-grid strong {
+    font-size: 1.2rem;
+  }
+
+  .feature-grid span,
+  .result-grid span {
+    font-size: .5rem;
+    letter-spacing: .08em;
+  }
+
+  .primary {
+    min-width: min(100%, 240px);
+    min-height: 48px;
+    padding: 12px 20px;
+    font-size: .78rem;
+  }
+
+  .small-card h2,
+  .upgrade-card h2 {
+    font-size: clamp(1.75rem, 9vw, 3.2rem);
+  }
+
+  .result-grid {
+    gap: 7px;
+    margin: 20px 0;
+  }
+
+  .upgrade-card {
+    width: min(100%, 680px);
+  }
+
+  .upgrade-options {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top: 16px;
+    max-height: min(58dvh, 520px);
+    overflow: auto;
+    padding-right: 3px;
+  }
+
+  .upgrade-option {
+    min-height: 0;
+    padding: 16px;
+  }
+
+  .upgrade-option b {
+    margin-bottom: 9px;
+    font-size: .58rem;
+  }
+
+  .upgrade-option strong {
+    margin-bottom: 6px;
+    font-size: 1.05rem;
+  }
+
+  .upgrade-option span {
+    font-size: .8rem;
+  }
+}
+
+/* Portrait phones: HUD stays readable above the browser safe area. */
+@media (max-width: 560px) and (orientation: portrait) {
+  .hero-card h1 {
+    font-size: clamp(3.35rem, 19vw, 5.5rem);
+  }
+
+  .bottom-center {
+    bottom: max(105px, calc(var(--safe-bottom) + 100px));
+    width: min(82vw, 330px);
+  }
+
+  .bottom-left {
+    width: calc(58% - 15px - var(--safe-left));
+  }
+
+  .bottom-right {
+    width: calc(42% - 15px - var(--safe-right));
+  }
+
+  .overdrive-panel .status-row {
+    font-size: .58rem;
+  }
+}
+
+/* Phone landscape and low-height laptop windows. */
+@media (orientation: landscape) and (max-height: 620px) {
+  .overlay {
+    padding:
+      max(8px, var(--safe-top))
+      max(12px, var(--safe-right))
+      max(8px, var(--safe-bottom))
+      max(12px, var(--safe-left));
+  }
+
+  .overlay-card {
+    width: min(920px, 94vw);
+    max-height: calc(100dvh - max(16px, var(--safe-top) + var(--safe-bottom)));
+    padding: clamp(14px, 3vh, 24px) clamp(22px, 5vw, 46px);
+  }
+
+  .hero-card h1 {
+    font-size: clamp(3rem, 17vh, 6.4rem);
+  }
+
+  .hero-card .eyebrow {
+    margin-bottom: 4px;
+  }
+
+  .hero-card .lead {
+    margin: 8px auto 10px;
+    font-size: clamp(.76rem, 2.6vh, 1rem);
+  }
+
+  .feature-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: 10px 0 12px;
+  }
+
+  .feature-grid div {
+    padding: 7px 5px;
+  }
+
+  .mobile-display-note {
+    margin-top: 8px;
+    font-size: .58rem;
+  }
+
+  .top-left {
+    top: max(7px, calc(var(--safe-top) + 3px));
+    right: auto;
+    width: min(46vw, 360px);
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .bottom-left,
+  .bottom-center,
+  .bottom-right {
+    bottom: max(7px, calc(var(--safe-bottom) + 3px));
+  }
+
+  .bottom-left {
+    width: min(29vw, 245px);
+  }
+
+  .bottom-center {
+    left: 50%;
+    width: min(31vw, 290px);
+    transform: translateX(-50%);
+  }
+
+  .bottom-right {
+    width: min(25vw, 205px);
+  }
+
+  #announcement {
+    top: 14%;
+    font-size: clamp(1.1rem, 7vh, 2.3rem);
+  }
+
+  #toast {
+    top: 27%;
+  }
+
+  .upgrade-options {
+    grid-template-columns: repeat(3, 1fr);
+    max-height: 56dvh;
+  }
+}
+
+/* Very short landscape screens, including phones with browser bars visible. */
+@media (orientation: landscape) and (max-height: 430px) {
+  .top-left {
+    padding: 6px 9px;
+  }
+
+  .bottom-left,
+  .bottom-center,
+  .bottom-right {
+    padding: 6px 9px;
+  }
+
+  .status-row.small,
+  .bar.thin,
+  .weapon-panel > span:last-child {
+    display: none;
+  }
+
+  .bottom-center {
+    width: min(29vw, 250px);
+  }
+
+  .bar {
+    height: 6px;
+  }
+
+  .hero-card .lead,
+  .mobile-display-note {
+    display: none;
+  }
+
+  .feature-grid {
+    margin: 7px 0 9px;
+  }
+
+  .primary {
+    min-height: 40px;
+    padding-block: 9px;
+  }
+}
+
+@media (hover: none) {
+  .primary:hover,
+  .upgrade-option:hover {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
