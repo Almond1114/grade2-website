@@ -22,4 +22,32 @@
       event.preventDefault();
     }
   }, { passive: false });
+
+  // touch-controls.js sends synthetic mousemove events. Scale only those events,
+  // leaving real PC mouse input unchanged. The original touch multipliers become
+  // about 1.83x in portrait and 1.63x in landscape.
+  const nativeDispatchEvent = document.dispatchEvent.bind(document);
+  document.dispatchEvent = (event) => {
+    if (event instanceof MouseEvent && event.type === "mousemove" && !event.isTrusted) {
+      const sensitivityBoost = 1.55;
+      const scaledEvent = new MouseEvent("mousemove", {
+        bubbles: event.bubbles,
+        cancelable: event.cancelable,
+      });
+
+      try {
+        Object.defineProperties(scaledEvent, {
+          movementX: { value: event.movementX * sensitivityBoost },
+          movementY: { value: event.movementY * sensitivityBoost },
+        });
+      } catch {
+        Object.defineProperty(scaledEvent, "movementX", { value: event.movementX * sensitivityBoost });
+        Object.defineProperty(scaledEvent, "movementY", { value: event.movementY * sensitivityBoost });
+      }
+
+      return nativeDispatchEvent(scaledEvent);
+    }
+
+    return nativeDispatchEvent(event);
+  };
 })();
