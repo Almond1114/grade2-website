@@ -1,0 +1,75 @@
+.touch-device .touch-right-cluster {
+  width: 284px;
+  height: 300px;
+}
+
+.touch-device .touch-look-stick {
+  width: 132px;
+  height: 132px;
+  right: 0;
+  bottom: 104px;
+}
+
+.touch-device .touch-look-stick-ring {
+  inset: 19px;
+}
+
+.touch-device .touch-look-stick-knob {
+  width: 58px;
+  height: 58px;
+  margin: -29px 0 0 -29px;
+}
+
+.touch-device .touch-aim {
+  right: 142px;
+  bottom: 132px;
+}
+
+.touch-device .touch-dash {
+  right: 150px;
+  bottom: 67px;
+}
+
+.touch-device .touch-jump {
+  right: 137px;
+  bottom: 5px;
+}
+
+@media (orientation: landscape) and (max-height: 470px) {
+  .touch-device .touch-right-cluster {
+    width: 250px;
+    height: 222px;
+  }
+
+  .touch-device .touch-look-stick {
+    width: 104px;
+    height: 104px;
+    right: 0;
+    bottom: 84px;
+  }
+
+  .touch-device .touch-look-stick-ring {
+    inset: 15px;
+  }
+
+  .touch-device .touch-look-stick-knob {
+    width: 48px;
+    height: 48px;
+    margin: -24px 0 0 -24px;
+  }
+
+  .touch-device .touch-aim {
+    right: 112px;
+    bottom: 108px;
+  }
+
+  .touch-device .touch-dash {
+    right: 120px;
+    bottom: 52px;
+  }
+
+  .touch-device .touch-jump {
+    right: 110px;
+    bottom: 0;
+  }
+}
