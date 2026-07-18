@@ -2,7 +2,7 @@ import * as THREE from "three";
 
 // Add lightweight neon edge lines to arena boxes before main.js builds the stage.
 // Direct scene-added BoxGeometry meshes are the arena walls and cover objects;
-// decorative top strips are skipped because they are extremely thin.
+// decorative top strips and instanced background towers are skipped.
 const originalSceneAdd = THREE.Scene.prototype.add;
 const edgeGeometry = new THREE.EdgesGeometry(new THREE.BoxGeometry(1, 1, 1), 12);
 
@@ -40,9 +40,10 @@ const materials = {
 };
 
 function attachNeonOutline(mesh) {
-  if (!mesh?.isMesh || mesh.geometry?.type !== "BoxGeometry") return;
+  if (!mesh?.isMesh || mesh.isInstancedMesh || mesh.geometry?.type !== "BoxGeometry") return;
   if (mesh.userData.neonObstacleOutline) return;
   if (mesh.scale.y < 0.18) return;
+  if (Math.max(mesh.scale.x, mesh.scale.z) < 2) return;
 
   const boundary = Math.max(mesh.scale.x, mesh.scale.z) > 70;
   const crisp = new THREE.LineSegments(
