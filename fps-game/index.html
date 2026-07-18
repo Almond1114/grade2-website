@@ -2,10 +2,11 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#050714" />
   <title>NEON RUSH // Arena FPS</title>
   <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="./responsive.css" />
   <script type="importmap">
     {
       "imports": {
@@ -15,7 +16,7 @@
     }
   </script>
 </head>
-<body>
+<body class="fps-page">
   <main id="game" aria-label="NEON RUSH 3D FPS"></main>
 
   <section id="hud" class="hidden" aria-live="polite">
@@ -74,7 +75,8 @@
         <div><strong>0</strong><span>EXTERNAL ASSETS</span></div>
       </div>
       <button id="start-button" class="primary">ENTER THE ARENA</button>
-      <p class="controls">WASD 移動 / Shift ダッシュ走行 / Ctrl スライド / Space ジャンプ / Q 瞬間ダッシュ<br />左クリック 射撃 / 右クリック 集中照準 / R リロード / 1–3 武器 / F オーバードライブ</p>
+      <p class="controls desktop-controls">WASD 移動 / Shift ダッシュ走行 / Ctrl スライド / Space ジャンプ / Q 瞬間ダッシュ<br />左クリック 射撃 / 右クリック 集中照準 / R リロード / 1–3 武器 / F オーバードライブ</p>
+      <p class="mobile-display-note">スマホ表示は横向き推奨。画面サイズに合わせてHUDとメニューを自動調整します。</p>
     </div>
   </section>
 
