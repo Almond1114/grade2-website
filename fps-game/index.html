@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="./look-stick-tuning.css" />
   <link rel="stylesheet" href="./dual-half-controls.css" />
   <link rel="stylesheet" href="./simple-mobile-controls.css" />
+  <link rel="stylesheet" href="./gyro-mode-selector.css" />
   <script type="importmap">
     {
       "imports": {
@@ -83,7 +84,7 @@
       </div>
       <button id="start-button" class="primary">ENTER THE ARENA</button>
       <p class="controls desktop-controls">WASD 移動 / Shift ダッシュ走行 / Ctrl スライド / Space ジャンプ / Q 瞬間ダッシュ<br />左クリック 射撃 / 右クリック 集中照準 / R リロード / 1–4 武器 / F オーバードライブ</p>
-      <p class="mobile-display-note">スマホは横向き専用です。左半分を触って移動、右半分は指を動かした分だけ視点移動。射撃中は自動で照準し、2秒間移動すると自動ダッシュ。GYROをONにすると端末の傾きで細かく狙えます。</p>
+      <p class="mobile-display-note">スマホは横向き専用です。開始前にタッチ・微調整ジャイロ・フルジャイロから操作モードを選択します。ジャイロ利用時は選択直後にセンサー許可を確認します。</p>
     </div>
   </section>
 
@@ -123,7 +124,9 @@
   <script src="./sensitivity-options.js"></script>
   <script src="./landscape-look-stick.js"></script>
   <script src="./look-stick-tuning.js"></script>
+  <script src="./gyro-mode-preloader.js"></script>
   <script src="./simple-mobile-controls.js"></script>
+  <script src="./gyro-mode-selector.js"></script>
   <script src="./dual-half-controls.js"></script>
   <script type="module" src="./neon-obstacles.js"></script>
   <script type="module" src="./main.js"></script>
