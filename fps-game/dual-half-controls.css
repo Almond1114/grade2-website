@@ -1,0 +1,232 @@
+.touch-device .touch-joystick,
+.touch-device .touch-look-stick,
+.touch-device .touch-dash,
+.touch-device .touch-reload {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+.touch-device .status-panel .status-row.small,
+.touch-device .status-panel .bar.thin {
+  display: none;
+}
+
+.dual-half-controls {
+  position: fixed;
+  inset: 0;
+  z-index: 48;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.dual-half-stick {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: clamp(116px, 17vw, 150px);
+  height: clamp(116px, 17vw, 150px);
+  opacity: 0;
+  border: 1px solid rgba(136, 240, 255, .46);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(58, 214, 255, .13), rgba(8, 18, 40, .34) 58%, rgba(3, 7, 19, .62));
+  box-shadow:
+    inset 0 0 32px rgba(80, 226, 255, .12),
+    0 0 26px rgba(55, 218, 255, .12);
+  transform: translate3d(-50%, -50%, 0) scale(.88);
+  transition: opacity .11s ease, transform .11s ease;
+  will-change: left, top, opacity, transform;
+}
+
+.dual-half-stick.active {
+  opacity: 1;
+  transform: translate3d(-50%, -50%, 0) scale(1);
+}
+
+.dual-half-stick::before,
+.dual-half-stick::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background: rgba(140, 242, 255, .17);
+  transform: translate(-50%, -50%);
+}
+
+.dual-half-stick::before {
+  width: 68%;
+  height: 1px;
+}
+
+.dual-half-stick::after {
+  width: 1px;
+  height: 68%;
+}
+
+.dual-half-stick-ring {
+  position: absolute;
+  inset: 15%;
+  border: 1px dashed rgba(151, 239, 255, .25);
+  border-radius: 50%;
+}
+
+.dual-half-stick-knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 46%;
+  height: 46%;
+  border: 1px solid rgba(225, 254, 255, .72);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 30%, rgba(234, 255, 255, .74), rgba(71, 218, 255, .4) 36%, rgba(12, 38, 73, .86));
+  box-shadow: 0 0 20px rgba(77, 225, 255, .36);
+  transform: translate3d(-50%, -50%, 0);
+  will-change: transform;
+}
+
+.dual-half-move-stick {
+  border-color: rgba(93, 255, 194, .48);
+  background:
+    radial-gradient(circle, rgba(56, 255, 186, .12), rgba(7, 31, 35, .34) 58%, rgba(3, 14, 18, .62));
+  box-shadow:
+    inset 0 0 32px rgba(69, 255, 190, .1),
+    0 0 26px rgba(42, 255, 184, .1);
+}
+
+.dual-half-move-stick .dual-half-stick-ring {
+  border-color: rgba(105, 255, 204, .24);
+}
+
+.dual-half-move-stick .dual-half-stick-knob {
+  background:
+    radial-gradient(circle at 34% 30%, rgba(233, 255, 248, .75), rgba(66, 255, 191, .38) 36%, rgba(10, 63, 52, .88));
+  box-shadow: 0 0 20px rgba(62, 255, 191, .34);
+}
+
+.dual-half-move-stick.charging::after {
+  width: calc(100% + 10px);
+  height: calc(100% + 10px);
+  border: 3px solid transparent;
+  border-top-color: rgba(87, 255, 192, .9);
+  border-right-color: rgba(87, 255, 192, .42);
+  border-radius: 50%;
+  background: none;
+  animation: auto-dash-charge 2s linear forwards;
+}
+
+.dual-half-move-stick.dashing {
+  border-color: rgba(118, 255, 208, .95);
+  box-shadow:
+    inset 0 0 38px rgba(69, 255, 190, .2),
+    0 0 34px rgba(42, 255, 184, .3);
+}
+
+.dual-half-move-stick.dashing::after {
+  width: calc(100% + 12px);
+  height: calc(100% + 12px);
+  border: 3px solid rgba(103, 255, 202, .76);
+  border-radius: 50%;
+  background: none;
+  animation: auto-dash-pulse .72s ease-in-out infinite alternate;
+}
+
+@keyframes auto-dash-charge {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes auto-dash-pulse {
+  from { opacity: .42; transform: translate(-50%, -50%) scale(.96); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1.04); }
+}
+
+@media (orientation: landscape) {
+  .touch-device .touch-left-cluster {
+    left: max(12px, calc(env(safe-area-inset-left) + 8px));
+    bottom: max(12px, calc(env(safe-area-inset-bottom) + 8px));
+    width: 68px;
+    height: 48px;
+  }
+
+  .touch-device .touch-slide {
+    left: 0;
+    right: auto;
+    top: auto;
+    bottom: 0;
+    width: 66px;
+    height: 42px;
+  }
+
+  .touch-device .touch-right-cluster {
+    width: 174px;
+    height: 174px;
+  }
+
+  .touch-device .touch-fire {
+    right: 0;
+    bottom: 0;
+  }
+
+  .touch-device .touch-jump {
+    right: 91px;
+    bottom: 0;
+  }
+
+  .touch-device .touch-aim {
+    right: 91px;
+    bottom: 67px;
+  }
+
+  .touch-device .touch-weapon {
+    right: 58px;
+    top: 0;
+  }
+
+  .touch-device .touch-overdrive {
+    right: 0;
+    top: 0;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 470px) {
+  .dual-half-stick {
+    width: 108px;
+    height: 108px;
+  }
+
+  .touch-device .touch-right-cluster {
+    width: 158px;
+    height: 152px;
+  }
+
+  .touch-device .touch-fire {
+    width: 76px;
+    height: 76px;
+  }
+
+  .touch-device .touch-jump {
+    right: 80px;
+    width: 56px;
+    height: 56px;
+  }
+
+  .touch-device .touch-aim {
+    right: 82px;
+    bottom: 58px;
+    width: 50px;
+    height: 50px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dual-half-stick,
+  .dual-half-move-stick.charging::after,
+  .dual-half-move-stick.dashing::after {
+    transition: none;
+    animation: none;
+  }
+}
