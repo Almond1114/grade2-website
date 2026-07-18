@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="./touch-controls.css" />
   <link rel="stylesheet" href="./touch-fixes.css" />
   <link rel="stylesheet" href="./sensitivity-options.css" />
+  <link rel="stylesheet" href="./landscape-look-stick.css" />
   <script type="importmap">
     {
       "imports": {
@@ -79,7 +80,7 @@
       </div>
       <button id="start-button" class="primary">ENTER THE ARENA</button>
       <p class="controls desktop-controls">WASD 移動 / Shift ダッシュ走行 / Ctrl スライド / Space ジャンプ / Q 瞬間ダッシュ<br />左クリック 射撃 / 右クリック 集中照準 / R リロード / 1–3 武器 / F オーバードライブ</p>
-      <p class="mobile-display-note">スマホは縦向き・横向きの両方に対応。左スティックで移動、右側をドラッグして視点を操作します。</p>
+      <p class="mobile-display-note">スマホは横向き専用です。左スティックで移動し、FIREボタン上の右スティックで視点を操作します。</p>
     </div>
   </section>
 
@@ -117,6 +118,8 @@
   <script src="./touch-controls.js"></script>
   <script src="./touch-fixes.js"></script>
   <script src="./sensitivity-options.js"></script>
+  <script src="./landscape-look-stick.js"></script>
   <script type="module" src="./neon-obstacles.js"></script>
+  <script type="module" src="./main.js"></script>
 </body>
 </html>
