@@ -1,0 +1,505 @@
+.touch-controls {
+  display: none;
+}
+
+.touch-device,
+.touch-device * {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.touch-device {
+  touch-action: none;
+}
+
+.touch-device .touch-controls {
+  position: fixed;
+  inset: 0;
+  z-index: 24;
+  display: block;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 140ms ease, visibility 140ms ease;
+}
+
+.touch-device .touch-controls.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.touch-look-zone {
+  position: absolute;
+  top: max(78px, calc(var(--safe-top) + 70px));
+  right: 0;
+  bottom: max(118px, calc(var(--safe-bottom) + 106px));
+  left: 42%;
+  z-index: 1;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.touch-look-zone::after {
+  content: "DRAG TO LOOK";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  padding: 5px 9px;
+  border: 1px solid rgba(117, 235, 255, .16);
+  border-radius: 999px;
+  color: rgba(190, 240, 255, .32);
+  background: rgba(4, 11, 25, .2);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .13em;
+  transform: translate(-50%, -50%);
+  transition: opacity 130ms ease;
+}
+
+.touch-look-zone.active::after,
+.touch-controls.visible:not(:hover) .touch-look-zone::after {
+  opacity: .3;
+}
+
+.touch-left-cluster,
+.touch-right-cluster,
+.touch-pause {
+  position: absolute;
+  z-index: 3;
+  pointer-events: auto;
+}
+
+.touch-left-cluster {
+  left: max(14px, calc(var(--safe-left) + 10px));
+  bottom: max(16px, calc(var(--safe-bottom) + 10px));
+  width: 174px;
+  height: 174px;
+}
+
+.touch-joystick {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 132px;
+  height: 132px;
+  border: 1px solid rgba(105, 230, 255, .26);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(63, 169, 224, .12), rgba(6, 13, 30, .18) 58%, rgba(4, 9, 22, .4));
+  box-shadow: inset 0 0 28px rgba(72, 222, 255, .08), 0 0 28px rgba(0, 0, 0, .18);
+  touch-action: none;
+}
+
+.touch-joystick::before,
+.touch-joystick::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background: rgba(112, 235, 255, .16);
+  transform: translate(-50%, -50%);
+}
+
+.touch-joystick::before {
+  width: 72%;
+  height: 1px;
+}
+
+.touch-joystick::after {
+  width: 1px;
+  height: 72%;
+}
+
+.touch-joystick-ring {
+  position: absolute;
+  inset: 18px;
+  border: 1px dashed rgba(121, 230, 255, .18);
+  border-radius: 50%;
+}
+
+.touch-joystick-knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 56px;
+  height: 56px;
+  margin: -28px 0 0 -28px;
+  border: 1px solid rgba(189, 250, 255, .55);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(199, 252, 255, .48), rgba(65, 202, 238, .3) 35%, rgba(15, 39, 72, .72));
+  box-shadow: inset 0 0 18px rgba(100, 237, 255, .18), 0 0 20px rgba(73, 221, 255, .25);
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+}
+
+.touch-joystick.active {
+  border-color: rgba(105, 242, 255, .58);
+  background: radial-gradient(circle, rgba(63, 217, 255, .18), rgba(6, 13, 30, .25) 60%, rgba(4, 9, 22, .5));
+}
+
+.touch-right-cluster {
+  right: max(12px, calc(var(--safe-right) + 8px));
+  bottom: max(14px, calc(var(--safe-bottom) + 8px));
+  width: 224px;
+  height: 228px;
+}
+
+.touch-button,
+.touch-pause {
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(126, 231, 255, .3);
+  color: rgba(235, 252, 255, .9);
+  background:
+    linear-gradient(145deg, rgba(62, 167, 226, .16), rgba(27, 29, 85, .2)),
+    rgba(5, 10, 25, .52);
+  box-shadow: inset 0 0 18px rgba(95, 227, 255, .07), 0 8px 20px rgba(0, 0, 0, .18);
+  font: 900 10px/1 system-ui, sans-serif;
+  letter-spacing: .08em;
+  backdrop-filter: blur(8px);
+  touch-action: none;
+  transition: transform 70ms ease, filter 70ms ease, border-color 70ms ease;
+}
+
+.touch-button.active,
+.touch-button:active,
+.touch-pause:active {
+  border-color: rgba(132, 245, 255, .8);
+  filter: brightness(1.28);
+  transform: scale(.92);
+}
+
+.touch-fire {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 92px;
+  height: 92px;
+  border-width: 2px;
+  border-radius: 50%;
+  color: #fff2f5;
+  background:
+    radial-gradient(circle at 38% 32%, rgba(255, 168, 189, .32), rgba(255, 63, 117, .2) 48%, rgba(51, 8, 36, .65));
+  box-shadow: inset 0 0 28px rgba(255, 94, 151, .14), 0 0 26px rgba(255, 58, 139, .2);
+  font-size: 12px;
+}
+
+.touch-fire::before,
+.touch-fire::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.touch-fire::before {
+  width: 66px;
+  height: 66px;
+  border: 1px dashed rgba(255, 207, 220, .4);
+}
+
+.touch-fire::after {
+  width: 7px;
+  height: 7px;
+  background: rgba(255, 223, 230, .85);
+  box-shadow: 0 0 13px rgba(255, 93, 145, .9);
+}
+
+.touch-fire span {
+  position: relative;
+  z-index: 1;
+  transform: translateY(20px);
+}
+
+.touch-jump {
+  position: absolute;
+  right: 95px;
+  bottom: 10px;
+  width: 67px;
+  height: 67px;
+  border-radius: 50%;
+}
+
+.touch-dash {
+  position: absolute;
+  right: 112px;
+  bottom: 82px;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  color: #dffcff;
+  background: radial-gradient(circle, rgba(66, 220, 255, .26), rgba(11, 33, 77, .64));
+}
+
+.touch-aim {
+  position: absolute;
+  right: 16px;
+  bottom: 101px;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+}
+
+.touch-aim.active {
+  color: #05151b;
+  background: linear-gradient(135deg, #72f3ff, #92b5ff);
+  box-shadow: 0 0 22px rgba(88, 232, 255, .45);
+}
+
+.touch-reload,
+.touch-weapon,
+.touch-overdrive {
+  position: absolute;
+  top: 0;
+  width: 52px;
+  height: 42px;
+  border-radius: 14px;
+}
+
+.touch-reload {
+  right: 0;
+}
+
+.touch-weapon {
+  right: 58px;
+  width: 64px;
+}
+
+.touch-overdrive {
+  right: 128px;
+  color: #ffe4fd;
+  background: linear-gradient(135deg, rgba(120, 73, 255, .28), rgba(255, 66, 204, .24)), rgba(8, 9, 34, .64);
+}
+
+.touch-slide {
+  position: absolute;
+  right: 0;
+  top: 8px;
+  width: 64px;
+  height: 46px;
+  border-radius: 15px;
+}
+
+.touch-pause {
+  top: max(76px, calc(var(--safe-top) + 67px));
+  right: max(11px, calc(var(--safe-right) + 8px));
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  font-size: 13px;
+}
+
+@media (orientation: portrait) {
+  .touch-look-zone {
+    top: max(88px, calc(var(--safe-top) + 78px));
+    bottom: max(252px, calc(var(--safe-bottom) + 240px));
+    left: 30%;
+  }
+
+  .touch-left-cluster {
+    left: max(10px, calc(var(--safe-left) + 7px));
+    bottom: max(18px, calc(var(--safe-bottom) + 12px));
+    width: 154px;
+    height: 180px;
+  }
+
+  .touch-joystick {
+    width: 122px;
+    height: 122px;
+  }
+
+  .touch-right-cluster {
+    right: max(8px, calc(var(--safe-right) + 6px));
+    bottom: max(15px, calc(var(--safe-bottom) + 9px));
+    width: 190px;
+    height: 236px;
+  }
+
+  .touch-fire {
+    width: 86px;
+    height: 86px;
+  }
+
+  .touch-jump {
+    right: 91px;
+    bottom: 0;
+    width: 62px;
+    height: 62px;
+  }
+
+  .touch-dash {
+    right: 107px;
+    bottom: 69px;
+    width: 58px;
+    height: 58px;
+  }
+
+  .touch-aim {
+    right: 13px;
+    bottom: 94px;
+    width: 54px;
+    height: 54px;
+  }
+
+  .touch-reload,
+  .touch-weapon,
+  .touch-overdrive {
+    top: 0;
+    height: 40px;
+  }
+
+  .touch-reload {
+    right: 0;
+    width: 44px;
+  }
+
+  .touch-weapon {
+    right: 49px;
+    width: 60px;
+  }
+
+  .touch-overdrive {
+    right: 114px;
+    width: 48px;
+  }
+
+  .touch-slide {
+    right: 4px;
+    top: 9px;
+    width: 60px;
+  }
+
+  .touch-device .bottom-left,
+  .touch-device .bottom-right {
+    bottom: max(205px, calc(var(--safe-bottom) + 196px));
+  }
+
+  .touch-device .bottom-center {
+    bottom: max(166px, calc(var(--safe-bottom) + 158px));
+    width: min(72vw, 330px);
+  }
+}
+
+@media (orientation: landscape) {
+  .touch-look-zone {
+    top: max(66px, calc(var(--safe-top) + 58px));
+    bottom: max(100px, calc(var(--safe-bottom) + 88px));
+    left: 36%;
+  }
+
+  .touch-device .bottom-left,
+  .touch-device .bottom-right {
+    bottom: max(12px, calc(var(--safe-bottom) + 7px));
+  }
+
+  .touch-device .bottom-left {
+    left: 31%;
+    width: min(210px, 26vw);
+  }
+
+  .touch-device .bottom-right {
+    right: 29%;
+    width: min(155px, 20vw);
+  }
+
+  .touch-device .bottom-center {
+    bottom: max(72px, calc(var(--safe-bottom) + 63px));
+    width: min(290px, 34vw);
+  }
+}
+
+@media (orientation: landscape) and (max-height: 470px) {
+  .touch-left-cluster {
+    width: 148px;
+    height: 142px;
+  }
+
+  .touch-joystick {
+    width: 116px;
+    height: 116px;
+  }
+
+  .touch-right-cluster {
+    width: 198px;
+    height: 174px;
+  }
+
+  .touch-fire {
+    width: 78px;
+    height: 78px;
+  }
+
+  .touch-fire::before {
+    width: 58px;
+    height: 58px;
+  }
+
+  .touch-jump {
+    right: 81px;
+    bottom: 3px;
+    width: 58px;
+    height: 58px;
+  }
+
+  .touch-dash {
+    right: 92px;
+    bottom: 65px;
+    width: 52px;
+    height: 52px;
+  }
+
+  .touch-aim {
+    right: 12px;
+    bottom: 83px;
+    width: 50px;
+    height: 50px;
+  }
+
+  .touch-reload,
+  .touch-weapon,
+  .touch-overdrive {
+    top: 0;
+    height: 34px;
+  }
+
+  .touch-device .bottom-center {
+    display: none;
+  }
+
+  .touch-device .bottom-left {
+    left: 27%;
+    width: 185px;
+  }
+
+  .touch-device .bottom-right {
+    right: 25%;
+    width: 132px;
+  }
+}
+
+@media (max-width: 390px) and (orientation: portrait) {
+  .touch-left-cluster {
+    transform: scale(.88);
+    transform-origin: left bottom;
+  }
+
+  .touch-right-cluster {
+    transform: scale(.87);
+    transform-origin: right bottom;
+  }
+
+  .touch-device .bottom-left,
+  .touch-device .bottom-right {
+    bottom: max(190px, calc(var(--safe-bottom) + 182px));
+  }
+}
+
+@media (pointer: coarse) {
+  .touch-button:hover,
+  .touch-pause:hover {
+    filter: none;
+    transform: none;
+  }
+}
