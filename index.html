@@ -9,12 +9,13 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="fps-entry.css" />
 </head>
 <body data-page="home">
   <header class="site-header">
     <div class="page-shell topbar">
       <a class="brand" href="index.html"><span class="brand-mark">2</span><span class="brand-text"><strong>2Base</strong><small>2学年総合web</small></span></a>
-      <nav class="nav" aria-label="メインメニュー"><a class="active" href="index.html">ホーム</a><a class="" href="classes.html">クラス</a><a class="" href="tests.html">テスト</a><a class="" href="homework.html">提出物</a><a class="" href="announcements.html">お知らせ</a><a class="" href="links.html">リンク</a><a class="" href="edit.html">編集</a><a class="" href="notifications.html">通知</a></nav>
+      <nav class="nav" aria-label="メインメニュー"><a class="active" href="index.html">ホーム</a><a class="" href="classes.html">クラス</a><a class="" href="tests.html">テスト</a><a class="" href="homework.html">提出物</a><a class="" href="announcements.html">お知らせ</a><a class="" href="links.html">リンク</a><a class="game-nav-link" href="fps-game/">ゲーム</a><a class="" href="edit.html">編集</a><a class="" href="notifications.html">通知</a></nav>
       <div class="header-tools">
         <select class="class-select" aria-label="表示クラス"></select>
         <select class="theme-select" aria-label="テーマ選択">
@@ -38,6 +39,7 @@
           <p class="lead">2学年全体のお知らせ・クラス別ページ・提出物・テスト予定を、白基調の見やすいデザインでまとめました。</p>
           <div class="hero-actions">
             <a class="btn" href="classes.html">クラスページへ</a>
+            <a class="fps-quick-button" href="fps-game/"><span>NEW</span> 3D FPSを遊ぶ</a>
             <a class="ghost-link" href="edit.html">内容を編集</a>
             <button class="ghost-btn" id="copyPrepBtn" type="button">明日の準備をコピー</button>
             <button class="ghost-btn" id="reloadBtn" type="button">再読み込み</button>
@@ -52,6 +54,33 @@
         </aside>
       </div>
     </section>
+
+    <section class="section fps-entry-section" aria-labelledby="fps-entry-title">
+      <div class="page-shell">
+        <a class="fps-entry-card" href="fps-game/">
+          <div class="fps-entry-grid" aria-hidden="true"></div>
+          <div class="fps-entry-glow fps-entry-glow-one" aria-hidden="true"></div>
+          <div class="fps-entry-glow fps-entry-glow-two" aria-hidden="true"></div>
+          <div class="fps-entry-copy">
+            <span class="fps-entry-label">PLAYABLE NOW // 3D ARENA FPS</span>
+            <h2 id="fps-entry-title">NEON <em>RUSH</em></h2>
+            <p>走る、滑る、瞬間ダッシュ。3種類の武器とオーバードライブで、無限ウェーブを突破しよう。</p>
+            <div class="fps-entry-features">
+              <span>3 WEAPONS</span>
+              <span>3 ENEMY TYPES</span>
+              <span>INFINITE WAVES</span>
+              <span>HIGH SPEED</span>
+            </div>
+          </div>
+          <div class="fps-entry-launch">
+            <span class="fps-entry-crosshair" aria-hidden="true"></span>
+            <strong>ゲームを起動</strong>
+            <small>キーボード・マウス推奨</small>
+          </div>
+        </a>
+      </div>
+    </section>
+
     <section class="section"><div class="page-shell"><div class="section-head"><div><h2>よく使うもの</h2><p>学年全体で見る頻度が高いものを上に配置。</p></div></div><div id="gradeQuickStats" class="grid-4"></div></div></section>
     <section class="section"><div class="page-shell"><div class="section-head"><div><h2>クラスページ</h2><p>2-1、2-2、2-3など各クラスの時間割・提出物・持ち物へ。</p></div><a class="ghost-link" href="classes.html">一覧を見る</a></div><div id="classCards" class="grid-3"></div></div></section>
     <section class="section"><div class="page-shell grid-2"><div><div class="section-head"><div><h2>お知らせ</h2><p>全体・クラス別の連絡。</p></div></div><div id="homeNoticeList"></div></div><div><div class="section-head"><div><h2>近い予定</h2><p>テストと提出物をまとめて表示。</p></div></div><div id="homeUpcomingList"></div></div></div></section>
