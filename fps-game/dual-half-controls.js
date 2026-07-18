@@ -103,11 +103,7 @@
   };
 
   const dispatchLook = (movementX, movementY) => {
-    const event = new MouseEvent("mousemove", {
-      bubbles: true,
-      cancelable: true,
-    });
-
+    const event = new MouseEvent("mousemove", { bubbles: true, cancelable: true });
     try {
       Object.defineProperties(event, {
         movementX: { value: movementX },
@@ -117,14 +113,11 @@
       Object.defineProperty(event, "movementX", { value: movementX });
       Object.defineProperty(event, "movementY", { value: movementY });
     }
-
     document.dispatchEvent(event);
   };
 
-  const isLandscape = () => innerWidth > innerHeight;
-
   const controlsAreActive = () => {
-    if (!isLandscape()) return false;
+    if (innerWidth <= innerHeight) return false;
     if (!touchRoot.classList.contains("visible")) return false;
     if (document.body.classList.contains("landscape-required")) return false;
     if (document.querySelector(".touch-sensitivity-panel.open")) return false;
@@ -145,20 +138,20 @@
     ].join(",")));
   };
 
-  const positionStick = (stick, clientX, clientY, side) => {
+  const positionStick = (stick, clientX, clientY) => {
     const size = stick.getBoundingClientRect().width || 132;
-    const radius = size / 2;
-    const edge = 12;
-    const middle = innerWidth / 2;
-    const minX = side === "left" ? radius + edge : middle + radius + edge;
-    const maxX = side === "left" ? middle - radius - edge : innerWidth - radius - edge;
-    const x = Math.min(Math.max(clientX, minX), Math.max(minX, maxX));
-    const y = Math.min(Math.max(clientY, radius + edge), innerHeight - radius - edge);
-
-    stick.style.left = `${x}px`;
-    stick.style.top = `${y}px`;
+    stick.style.left = `${clientX}px`;
+    stick.style.top = `${clientY}px`;
     stick.classList.add("active");
-    return { x, y, radius: size * 0.34 };
+    return { x: clientX, y: clientY, radius: size * 0.34 };
+  };
+
+  const capturePointer = (target, pointerId) => {
+    try {
+      target?.setPointerCapture?.(pointerId);
+    } catch {
+      // Some mobile browsers reject capture from a document-level handler.
+    }
   };
 
   const setKnobOffset = (knob, dx, dy) => {
@@ -188,11 +181,8 @@
     setMovementKey("KeyW", normalizedY < -deadZone);
     setMovementKey("KeyS", normalizedY > deadZone);
 
-    if (magnitude > 0.24 && movementKeys.size > 0) {
-      startDashCharge();
-    } else {
-      stopDashCharge();
-    }
+    if (magnitude > 0.24 && movementKeys.size > 0) startDashCharge();
+    else stopDashCharge();
   };
 
   const updateLook = (clientX, clientY) => {
@@ -232,8 +222,7 @@
     const frameScale = Math.min(1.8, Math.max(0.45, (now - lastLookFrame) / 16.667));
     lastLookFrame = now;
 
-    // Existing mobile sensitivity, the user SENS setting, and the 2x tuning layer
-    // are applied after these analog values.
+    // Existing mobile sensitivity, SENS, and the 2x tuning layer apply after this.
     dispatchLook(lookX * 5.1 * frameScale, lookY * 4.4 * frameScale);
     lookAnimationId = requestAnimationFrame(animateLook);
   };
@@ -270,26 +259,26 @@
     if (leftHalf && movePointerId === null) {
       event.preventDefault();
       movePointerId = event.pointerId;
-      const position = positionStick(moveStick, event.clientX, event.clientY, "left");
+      const position = positionStick(moveStick, event.clientX, event.clientY);
       moveOriginX = position.x;
       moveOriginY = position.y;
       moveRadius = position.radius;
       updateMovement(event.clientX, event.clientY);
-      event.target.setPointerCapture?.(event.pointerId);
+      capturePointer(event.target, event.pointerId);
       return;
     }
 
     if (!leftHalf && lookPointerId === null) {
       event.preventDefault();
       lookPointerId = event.pointerId;
-      const position = positionStick(lookStick, event.clientX, event.clientY, "right");
+      const position = positionStick(lookStick, event.clientX, event.clientY);
       lookOriginX = position.x;
       lookOriginY = position.y;
       lookRadius = position.radius;
       updateLook(event.clientX, event.clientY);
       lastLookFrame = performance.now();
       if (!lookAnimationId) lookAnimationId = requestAnimationFrame(animateLook);
-      event.target.setPointerCapture?.(event.pointerId);
+      capturePointer(event.target, event.pointerId);
     }
   }, { capture: true, passive: false });
 
