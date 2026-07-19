@@ -5,7 +5,7 @@
 
   // gyro-mode-selector.js intentionally stops at about 83 degrees to avoid a
   // pole flip. PointerLockControls itself can safely reach almost 90 degrees,
-  // so extend only the vertical movement while VR FULL is selected.
+  // so extend and correct only the vertical movement while VR FULL is selected.
   const SOURCE_MAX_PITCH = 1.45;
   const TARGET_MAX_PITCH = Math.PI / 2 - 0.012;
   const VERTICAL_SCALE = TARGET_MAX_PITCH / SOURCE_MAX_PITCH;
@@ -26,14 +26,18 @@
       cancelable: event.cancelable,
     });
 
+    // Device pitch and PointerLock mouse Y use opposite signs.
+    // Invert only VR FULL's vertical axis; keep horizontal tracking unchanged.
+    const correctedMovementY = -event.movementY * VERTICAL_SCALE;
+
     try {
       Object.defineProperties(extendedEvent, {
         movementX: { value: event.movementX },
-        movementY: { value: event.movementY * VERTICAL_SCALE },
+        movementY: { value: correctedMovementY },
       });
     } catch {
       Object.defineProperty(extendedEvent, "movementX", { value: event.movementX });
-      Object.defineProperty(extendedEvent, "movementY", { value: event.movementY * VERTICAL_SCALE });
+      Object.defineProperty(extendedEvent, "movementY", { value: correctedMovementY });
     }
 
     return previousDispatchEvent(extendedEvent);
