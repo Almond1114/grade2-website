@@ -27,6 +27,7 @@
   const TWO_PI = Math.PI * 2;
   const POINTER_ROTATION_PER_PIXEL = 0.002 * 0.9;
   const BASE_TOUCH_MULTIPLIER = 1.55 * 2;
+  const FULL_MAX_PITCH = Math.PI / 2 - 0.015;
 
   let orientationInstalled = false;
   let lastBeta = null;
@@ -35,11 +36,12 @@
   let filteredY = 0;
   let firstSensorTimer = 0;
 
-  let fullOriginQuaternion = null;
+  let fullOriginBasis = null;
   let fullAppliedYaw = 0;
   let fullAppliedPitch = 0;
   let fullFilteredYaw = 0;
   let fullFilteredPitch = 0;
+  let fullStableYaw = 0;
   let lastFullTapTime = 0;
   let lastFullTapX = 0;
   let lastFullTapY = 0;
@@ -69,7 +71,7 @@
       <button type="button" data-gyro-mode="full" ${supportsGyro ? "" : "disabled"}>
         <b>VR FULL</b>
         <strong>フルジャイロ</strong>
-        <span>端末を向けた方向へ視点が追従</span>
+        <span>端末を向けた方向へ上下左右が追従</span>
       </button>
     </div>
     <div class="gyro-mode-status" role="status" aria-live="polite">
@@ -89,6 +91,8 @@
   startButton.textContent = "操作モードを選択";
 
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+  const dot = (a, b) => a.x * b.x + a.y * b.y + a.z * b.z;
+
   const setStatus = (kind, text) => {
     status.dataset.kind = kind;
     statusText.textContent = text;
@@ -112,11 +116,12 @@
     lastGamma = null;
     filteredX = 0;
     filteredY = 0;
-    fullOriginQuaternion = null;
+    fullOriginBasis = null;
     fullAppliedYaw = 0;
     fullAppliedPitch = 0;
     fullFilteredYaw = 0;
     fullFilteredPitch = 0;
+    fullStableYaw = 0;
     state.fullYaw = 0;
     state.fullPitch = 0;
   };
@@ -199,9 +204,8 @@
     return quatNormalize(quaternion);
   };
 
-  const rotateForward = (q) => {
-    const vector = { x: 0, y: 0, z: -1, w: 0 };
-    const rotated = quatMultiply(quatMultiply(q, vector), quatConjugate(q));
+  const rotateVector = (q, vector) => {
+    const rotated = quatMultiply(quatMultiply(q, { ...vector, w: 0 }), quatConjugate(q));
     return { x: rotated.x, y: rotated.y, z: rotated.z };
   };
 
@@ -211,36 +215,54 @@
     return 1 / (POINTER_ROTATION_PER_PIXEL * totalMultiplier);
   };
 
+  const setFullOrigin = (quaternion) => {
+    fullOriginBasis = {
+      right: rotateVector(quaternion, { x: 1, y: 0, z: 0 }),
+      up: rotateVector(quaternion, { x: 0, y: 1, z: 0 }),
+      forward: rotateVector(quaternion, { x: 0, y: 0, z: -1 }),
+    };
+    fullAppliedYaw = 0;
+    fullAppliedPitch = 0;
+    fullFilteredYaw = 0;
+    fullFilteredPitch = 0;
+    fullStableYaw = 0;
+    state.fullYaw = 0;
+    state.fullPitch = 0;
+  };
+
   const applyFullOrientation = (currentQuaternion) => {
-    if (!fullOriginQuaternion) {
-      fullOriginQuaternion = currentQuaternion;
-      fullAppliedYaw = 0;
-      fullAppliedPitch = 0;
-      fullFilteredYaw = 0;
-      fullFilteredPitch = 0;
-      state.fullYaw = 0;
-      state.fullPitch = 0;
+    if (!fullOriginBasis) {
+      setFullOrigin(currentQuaternion);
       return;
     }
 
-    const relative = quatNormalize(quatMultiply(currentQuaternion, quatConjugate(fullOriginQuaternion)));
-    const forward = rotateForward(relative);
-    let targetYaw = Math.atan2(-forward.x, -forward.z);
-    const targetPitch = Math.asin(clamp(forward.y, -1, 1));
+    const forward = rotateVector(currentQuaternion, { x: 0, y: 0, z: -1 });
+    const localX = clamp(dot(forward, fullOriginBasis.right), -1, 1);
+    const localY = clamp(dot(forward, fullOriginBasis.up), -1, 1);
+    const localZ = clamp(dot(forward, fullOriginBasis.forward), -1, 1);
+    const horizontalLength = Math.hypot(localX, localZ);
+
+    let targetYaw = horizontalLength > 0.075 ? Math.atan2(localX, localZ) : fullStableYaw;
+    const targetPitch = clamp(Math.atan2(localY, Math.max(0.0001, horizontalLength)), -FULL_MAX_PITCH, FULL_MAX_PITCH);
 
     targetYaw = unwrapNear(targetYaw, fullFilteredYaw);
-    fullFilteredYaw += (targetYaw - fullFilteredYaw) * 0.52;
-    fullFilteredPitch += (clamp(targetPitch, -1.45, 1.45) - fullFilteredPitch) * 0.52;
+    if (horizontalLength > 0.075) fullStableYaw = targetYaw;
+
+    fullFilteredYaw += (targetYaw - fullFilteredYaw) * 0.42;
+    fullFilteredPitch += (targetPitch - fullFilteredPitch) * 0.42;
     state.fullYaw = fullFilteredYaw;
     state.fullPitch = fullFilteredPitch;
 
     if (!controlsAreActive()) return;
 
-    const yawStep = clamp(wrapRadians(fullFilteredYaw - fullAppliedYaw), -0.34, 0.34);
-    const pitchStep = clamp(fullFilteredPitch - fullAppliedPitch, -0.26, 0.26);
+    const yawStep = clamp(wrapRadians(fullFilteredYaw - fullAppliedYaw), -0.3, 0.3);
+    const pitchStep = clamp(fullFilteredPitch - fullAppliedPitch, -0.24, 0.24);
     const pixelsPerRadian = fullPixelsPerRadian();
 
-    sendLook(-yawStep * pixelsPerRadian, -pitchStep * pixelsPerRadian);
+    // PointerLock subtracts movementX from yaw and movementY from pitch.
+    // Positive local yaw means the phone points right, so send positive X.
+    // Positive local pitch means the phone points up, so send negative Y.
+    sendLook(yawStep * pixelsPerRadian, -pitchStep * pixelsPerRadian);
     fullAppliedYaw += yawStep;
     fullAppliedPitch += pitchStep;
   };
@@ -250,7 +272,7 @@
     state.sensorReady = true;
     clearTimeout(firstSensorTimer);
     setStatus("ready", state.mode === "full"
-      ? "VR風フルジャイロを確認しました。開始時の向きを正面として、端末を向けた方向へ視点が追従します。ゲーム中は右半分をダブルタップすると正面補正できます。"
+      ? "VR FULLを確認しました。正面を基準に、端末を向けた方向へ上下左右が追従します。右半分のダブルタップで正面補正できます。"
       : "微調整ジャイロを確認しました。ドラッグと組み合わせて使用できます。");
     updateStartAvailability();
     navigator.vibrate?.(10);
@@ -310,11 +332,15 @@
       return;
     }
 
-    const alpha = Number(event.alpha);
-    if (!Number.isFinite(alpha)) return;
+    const eventAlpha = Number(event.alpha);
+    const compassHeading = Number(event.webkitCompassHeading);
+    const alpha = Number.isFinite(eventAlpha)
+      ? eventAlpha
+      : (Number.isFinite(compassHeading) ? 360 - compassHeading : 0);
+
     const currentQuaternion = deviceQuaternion(alpha, beta, gamma);
-    if (!fullOriginQuaternion) {
-      fullOriginQuaternion = currentQuaternion;
+    if (!fullOriginBasis) {
+      setFullOrigin(currentQuaternion);
       markSensorReady();
       return;
     }
@@ -374,7 +400,7 @@
       installOrientation();
       resetSensorOrigin();
       setStatus("waiting", mode === "full"
-        ? "許可されました。端末を正面に構え、上下左右へ少し向けてセンサーを確認してください。"
+        ? "許可されました。端末を正面に構え、上下左右へ少し向けてください。"
         : "許可されました。端末を上下左右へ少し動かしてセンサーを確認してください。");
       firstSensorTimer = window.setTimeout(() => {
         if (!state.sensorReady && (state.mode === "fine" || state.mode === "full")) {
@@ -426,7 +452,7 @@
   startButton.addEventListener("click", resetSensorOrigin, true);
   document.querySelector("#resume-button")?.addEventListener("click", resetSensorOrigin, true);
   document.querySelector("#restart-button")?.addEventListener("click", resetSensorOrigin, true);
-  addEventListener("orientationchange", () => setTimeout(resetSensorOrigin, 160));
+  addEventListener("orientationchange", () => setTimeout(resetSensorOrigin, 180));
   addEventListener("blur", resetSensorOrigin);
 
   if (!supportsGyro) {
