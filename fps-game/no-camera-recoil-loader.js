@@ -1,51 +1,25 @@
-import * as THREE from "three";
+// Load the game normally, changing only the single line that pushes the camera
+// upward after each shot. This avoids patching THREE.Euler globally, which can
+// interfere with mobile pointer-lock and cause the pause overlay to reopen.
+const mainUrl = new URL("./main.js?v=17", import.meta.url);
+const response = await fetch(mainUrl, { cache: "no-store" });
+if (!response.ok) throw new Error(`main.js load failed: ${response.status}`);
 
-// Keep visual weapon kick, muzzle flash and spread, but prevent the shot itself
-// from pushing the player's camera upward. Mouse/touch/gyro look input still
-// passes through normally.
-const cameraRotations = new WeakSet();
-const xDescriptor = Object.getOwnPropertyDescriptor(THREE.Euler.prototype, "x");
-const orderDescriptor = Object.getOwnPropertyDescriptor(THREE.Euler.prototype, "order");
+const recoilLine = "  camera.rotation.x = Math.max(-1.45, camera.rotation.x - weapon.kick * (input.aim ? 0.55 : 0.85));";
+const source = await response.text();
 
-if (!xDescriptor?.get || !xDescriptor?.set || !orderDescriptor?.get || !orderDescriptor?.set) {
-  await import("./main.js?v=16");
+if (!source.includes(recoilLine)) {
+  console.warn("NEON RUSH: camera recoil line was not found; loading the original game module.");
+  await import(mainUrl.href);
 } else {
-  let insideLookEvent = false;
-
-  document.addEventListener("mousemove", () => {
-    insideLookEvent = true;
-    queueMicrotask(() => {
-      insideLookEvent = false;
-    });
-  }, true);
-
-  Object.defineProperty(THREE.Euler.prototype, "order", {
-    configurable: orderDescriptor.configurable,
-    enumerable: orderDescriptor.enumerable,
-    get: orderDescriptor.get,
-    set(value) {
-      orderDescriptor.set.call(this, value);
-      if (value === "YXZ") cameraRotations.add(this);
-    },
-  });
-
-  Object.defineProperty(THREE.Euler.prototype, "x", {
-    configurable: xDescriptor.configurable,
-    enumerable: xDescriptor.enumerable,
-    get: xDescriptor.get,
-    set(value) {
-      const current = xDescriptor.get.call(this);
-      const upwardRecoil = cameraRotations.has(this)
-        && !insideLookEvent
-        && document.querySelector("#hud:not(.hidden)")
-        && Number.isFinite(value)
-        && value < current
-        && current - value <= 0.12;
-
-      if (upwardRecoil) return;
-      xDescriptor.set.call(this, value);
-    },
-  });
-
-  await import("./main.js?v=16");
+  const patchedSource = source.replace(
+    recoilLine,
+    "  // Camera recoil disabled: keep aim fixed while preserving visual weapon kick.",
+  );
+  const moduleUrl = URL.createObjectURL(new Blob([patchedSource], { type: "text/javascript" }));
+  try {
+    await import(moduleUrl);
+  } finally {
+    URL.revokeObjectURL(moduleUrl);
+  }
 }
