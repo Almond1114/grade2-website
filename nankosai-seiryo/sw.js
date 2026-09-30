@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'nankosai-seiryo:';
-const CACHE_NAME = CACHE_PREFIX + '2c02d0cb358a';
+const CACHE_NAME = CACHE_PREFIX + 'c836c0836dee';
 const ASSETS = ["./","./admin.html","./assets/favicon.svg","./assets/icon-192.png","./assets/icon-512.png","./assets/maps/1F.svg","./assets/maps/2F.svg","./assets/maps/3F.svg","./assets/posters/bell.svg","./assets/posters/brass.svg","./assets/posters/deep.svg","./assets/posters/glass.svg","./assets/posters/live.svg","./assets/posters/sky.svg","./css/admin.css","./css/animations.css","./css/base.css","./css/public.css","./data/demo.json","./index.html","./js/admin-app.js","./js/animations.js","./js/api.js","./js/cards.js","./js/dom.js","./js/editor-storage.js","./js/festival-data.js","./js/icons.js","./js/media.js","./js/public-app.js","./js/pwa.js","./js/schema.js","./js/site-config.js","./js/storage.js","./js/utils.js","./manifest.webmanifest"];
 const BASE = new URL('./', self.location.href);
 self.addEventListener('install', event => {

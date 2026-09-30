@@ -39,6 +39,10 @@ function applySaved(action,payload,saved){
 }
 async function mutate(action,payload,message){
  if(busy)return false;busy=true;$('#admin-workspace').setAttribute('aria-busy','true');
+ const controls=[...document.querySelectorAll('#admin-workspace input,#admin-workspace select,#admin-workspace textarea')],disabledStates=controls.map(control=>control.disabled);
+ controls.forEach(control=>control.disabled=true);
+ const progressButtons=[...document.querySelectorAll('#admin-workspace button[type=submit],#upload-submit')],buttonLabels=progressButtons.map(button=>button.textContent);
+ progressButtons.forEach(button=>button.textContent='保存中…');
  document.querySelectorAll('button[type=submit],#save-draft,#upload-submit').forEach(button=>button.disabled=true);
  try{
   const saved=await api.mutate(action,payload);
@@ -47,7 +51,7 @@ async function mutate(action,payload,message){
   try{await reload();}catch{toast('保存は完了しました。最新一覧の取得に失敗したため、接続が戻ったら「再読み込み」を押してください。',true);}
   return saved;
  }catch(error){handleError(error);return false;}
- finally{busy=false;$('#admin-workspace').removeAttribute('aria-busy');document.querySelectorAll('button[type=submit],#save-draft,#upload-submit').forEach(button=>button.disabled=false);}
+ finally{busy=false;$('#admin-workspace').removeAttribute('aria-busy');controls.forEach((control,index)=>control.disabled=disabledStates[index]);progressButtons.forEach((button,index)=>button.textContent=buttonLabels[index]);document.querySelectorAll('button[type=submit],#save-draft,#upload-submit').forEach(button=>button.disabled=false);}
 }
 function renderNav(){ $('#admin-nav').innerHTML=menu.map(([id,label,graphic])=>`<button data-section="${id}" ${section===id?'aria-current="page"':''}>${icon(graphic)}${label}</button>`).join('');$('#current-section-label').textContent=menu.find(item=>item[0]===section)[1]; }
 function crowdButtons(project){return `<div class="crowd-buttons" role="group" aria-label="${e(project.title)}の混雑状況">${Object.entries(crowdLabels).map(([value,label])=>`<button data-crowd-id="${e(project.id)}" data-crowd="${value}" aria-pressed="${project.crowd===value}">${label}</button>`).join('')}</div>`;}
@@ -143,7 +147,7 @@ function renderSettings(){
 function actionLabel(action){return {saveRecord:'保存',deleteRecord:'削除',updateCrowd:'混雑変更',saveSettings:'設定変更',uploadImage:'画像保存'}[action]||action;}
 function renderAudit(){ $('#admin-workspace').innerHTML=pageTitle('変更履歴','いつ・何を変更したか確認できます。最新300件を表示します。')+`<div class="table-scroll"><table class="audit-table"><thead><tr><th>日時（日本時間）</th><th>操作</th><th>対象</th><th>内容</th></tr></thead><tbody>${data.audit.slice(0,300).map(item=>`<tr><td><time>${e(new Date(item.time).toLocaleString('ja-JP',{timeZone:'Asia/Tokyo'}))}</time></td><td>${e(actionLabel(item.action))}</td><td>${e(menu.find(m=>m[0]===item.collection)?.[1]||item.collection)}</td><td>${e(item.detail)}</td></tr>`).join('')}</tbody></table></div>`; }
 function render(){renderNav();({dashboard:renderDashboard,media:renderMedia,settings:renderSettings,audit:renderAudit}[section]||renderManagement)();}
-async function enterAdmin(){await reload();$('#login-screen').hidden=true;$('#admin-shell').hidden=false;$('#provider-indicator').textContent=api.mode==='demo'?'デモ / このブラウザのみ':'Google Sheets 接続';$('#admin-demo-note').hidden=api.mode!=='demo';const view=readStorage('admin-view',null,true);if(view&&menu.some(item=>item[0]===view.section)){section=view.section;editingId=view.editingId||'';}render();}
+async function enterAdmin(){await reload();$('#login-screen').hidden=true;$('#admin-shell').hidden=false;$('#provider-indicator').textContent=api.mode==='demo'?'デモモード':'Google接続';$('#admin-demo-note').hidden=api.mode!=='demo';const view=readStorage('admin-view',null,true);if(view&&menu.some(item=>item[0]===view.section)){section=view.section;editingId=view.editingId||'';}render();}
 function rememberView(){try{writeStorage('admin-view',{section,editingId},true);}catch{}}
 applySiteConfig();$('#password-field').hidden=api.mode==='demo';$('#admin-password').required=api.mode==='google';$('#login-button').textContent=api.mode==='demo'?'デモ管理を試す':'ログイン';$('#login-mode-note').textContent=api.mode==='demo'?'パスワード不要のデモです。このブラウザ内で編集を試せます。':'管理者パスワードはサーバー側で照合します。';
 $('#login-form').addEventListener('submit',async event=>{event.preventDefault();$('#login-button').disabled=true;$('#login-error').textContent='';try{const session=await api.login($('#admin-password').value);writeStorage('session',{...session,provider:api.mode},true);$('#admin-password').value='';await enterAdmin();}catch(error){$('#login-error').textContent=error.message;}finally{$('#login-button').disabled=false;}});

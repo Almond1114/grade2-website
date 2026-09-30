@@ -12,19 +12,19 @@ function report(label,passed,detail=''){
  document.querySelector('#test-summary').textContent=`${results.querySelectorAll('.pass').length}件成功 / ${results.querySelectorAll('.fail').length}件失敗`;
 }
 async function check(label,operation){try{report(label,await operation());}catch(error){report(label,false,error.message);}}
-async function load(path,width){
+async function load(path,width,allowLogin=false){
  // Recreating an iframe gives each scenario a clean document and leaves the tab's storage intact.
  const next=document.createElement('iframe');next.id='frame';next.title='検証対象';next.width=width;
  const ready=new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error('画面読込がタイムアウト')),12000);next.onload=()=>{clearTimeout(timer);resolve();};});
  next.src=new URL(path,location.href);frame.replaceWith(next);frame=next;await ready;
  const doc=frame.contentDocument;
- await until(()=>path.includes('admin')?!doc.querySelector('#admin-shell').hidden:doc.querySelector('#project-grid .project-card'));
+ await until(()=>path.includes('admin')?(allowLogin||!doc.querySelector('#admin-shell').hidden):doc.querySelector('#project-grid .project-card'));
  return doc;
 }
 function edit(doc,selector,value){const input=doc.querySelector(selector);input.value=value;input.dispatchEvent(new frame.contentWindow.Event('input',{bubbles:true}));if(input.tagName==='SELECT')input.dispatchEvent(new frame.contentWindow.Event('change',{bubbles:true}));}
 const savedKeys=storage=>Object.fromEntries(Object.keys(storage).filter(key=>key.startsWith(prefix)).map(key=>[key,storage.getItem(key)]));
 function restore(storage,snapshot){for(const key of Object.keys(storage))if(key.startsWith(prefix))storage.removeItem(key);for(const [key,value] of Object.entries(snapshot))storage.setItem(key,value);}
-document.querySelector('#show').onclick=()=>load(document.querySelector('#preview-page').value,Number(document.querySelector('#preview').value));
+document.querySelector('#show').onclick=()=>load(document.querySelector('#preview-page').value,Number(document.querySelector('#preview').value),true);
 document.querySelector('#run').onclick=async()=>{
  if(SITE_CONFIG.api.url){report('本番APIでは書込検証を実行しません',false);return;}
  const button=document.querySelector('#run');button.disabled=true;results.replaceChildren();
@@ -61,14 +61,15 @@ document.querySelector('#run').onclick=async()=>{
   await check('管理検索でも全角のクラス名を使える',()=>{edit(doc,'#admin-search','２年３組');return doc.querySelectorAll('.record-row').length===1;});
   edit(doc,'#admin-search','');
   await check('新規作成を保存済みと誤表示しない',()=>doc.querySelector('#dirty-indicator').textContent.includes('まだ保存'));
-  await check('未完成の下書きを名前だけで保存できる',async()=>{edit(doc,'#field-title','QA 名前だけの下書き');doc.querySelector('#save-record').click();await until(()=>doc.querySelector('.editor-heading p')?.textContent==='QA 名前だけの下書き'&&!doc.querySelector('#save-record').disabled);return doc.querySelector('#field-organization').value===''&&readStorage('database').projects.some(item=>item.title==='QA 名前だけの下書き'&&item.status==='draft');});
+  await check('未完成の下書きを名前だけで保存できる',async()=>{edit(doc,'#field-title','QA 名前だけの下書き');doc.querySelector('#save-record').click();report('保存中の二重操作・入力変更を止める',doc.querySelector('#save-record').disabled&&doc.querySelector('#field-title').disabled&&doc.querySelector('#save-record').textContent==='保存中…');await until(()=>doc.querySelector('.editor-heading p')?.textContent==='QA 名前だけの下書き'&&!doc.querySelector('#save-record').disabled);return doc.querySelector('#field-organization').value===''&&readStorage('database').projects.some(item=>item.title==='QA 名前だけの下書き'&&item.status==='draft');});
   await check('下書きが来場者へ公開されない',async()=>!(await api.getPublic()).projects.some(item=>item.title==='QA 名前だけの下書き'));
   const draftId=readStorage('admin-view',null,true).editingId;
   edit(doc,'#field-description','QA 入力途中の説明');doc=await load('../admin.html',320);
   await check('入力途中の企画を再表示すると復元できる',()=>doc.querySelector('#field-description').value==='QA 入力途中の説明'&&doc.querySelector('.draft-recovery').textContent.includes('復元しました'));
   await check('公開時には必須項目の不足を止める',()=>{edit(doc,'#field-status','published');return !doc.querySelector('#record-form').checkValidity()&&doc.querySelector('#field-organization').required;});
   edit(doc,'#field-status','draft');doc.querySelector('#save-record').click();await until(()=>!doc.querySelector('#save-record').disabled&&doc.querySelector('#dirty-indicator').textContent==='保存済み');
-  await check('スマホ編集中も保存ボタンを追従させる',()=>{doc.querySelector('#field-description').scrollIntoView({block:'center'});const box=doc.querySelector('.editor-save-bar').getBoundingClientRect(),sidebar=doc.querySelector('.admin-sidebar').getBoundingClientRect();return box.top>=sidebar.bottom-2&&box.bottom<frame.contentWindow.innerHeight&&frame.contentWindow.getComputedStyle(doc.querySelector('.editor-save-bar')).position==='sticky';});
+  await check('スマホ編集中も保存ボタンを追従させる',async()=>{doc.querySelector('#field-description').scrollIntoView({block:'center'});await until(()=>{const box=doc.querySelector('.editor-save-bar').getBoundingClientRect(),sidebar=doc.querySelector('.admin-sidebar').getBoundingClientRect();return box.top>=sidebar.bottom-2&&box.bottom<frame.contentWindow.innerHeight;});return frame.contentWindow.getComputedStyle(doc.querySelector('.editor-save-bar')).position==='sticky';});
+  await check('高さ480pxでも入力欄と保存操作を確保する',async()=>{frame.style.height='480px';doc.querySelector('#field-description').scrollIntoView({block:'center'});await until(()=>{const box=doc.querySelector('.editor-save-bar').getBoundingClientRect();return box.top>=0&&box.bottom<200;});return frame.contentWindow.getComputedStyle(doc.querySelector('.admin-sidebar')).position==='relative';});frame.style.height='850px';
   await check('管理フォームも320pxで横にあふれない',()=>doc.documentElement.scrollWidth<=321);
   doc.querySelector('[data-section="schedule"]').click();edit(doc,'#field-projectId','brass');
   await check('関連企画から新規イベントを入力できる',()=>doc.querySelector('#field-title').value==='吹奏楽部ステージ'&&doc.querySelector('#field-locationId').value==='gym');
