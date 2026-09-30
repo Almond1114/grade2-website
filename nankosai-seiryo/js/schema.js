@@ -17,3 +17,12 @@ export function validateRecord(collection,record,data) {
  if(value.publishAt&&Number.isNaN(Date.parse(value.publishAt)))throw new Error('公開日時が不正です。');
  return value;
 }
+
+export function validateSettings(settings) {
+ const dates=String(settings.eventDates||'').split(',').map(value=>value.trim());
+ if(!dates.length||dates.length>30||dates.some(value=>!/^\d{4}-\d{2}-\d{2}$/.test(value)||Number.isNaN(Date.parse(value+'T12:00:00Z'))||new Date(value+'T12:00:00Z').toISOString().slice(0,10)!==value))throw new Error('開催日をYYYY-MM-DDで入力してください。');
+ if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(settings.openTime)||!/^([01]\d|2[0-3]):[0-5]\d$/.test(settings.closeTime)||settings.openTime>=settings.closeTime)throw new Error('開場・閉場時刻を確認してください。');
+ const emergencyText=text(String(settings.emergencyText||''),300),admissionText=text(String(settings.admissionText||''),4000);
+ if(settings.emergencyEnabled&&!emergencyText)throw new Error('緊急バナーの文面を入力してください。');
+ return {...settings,eventDates:[...new Set(dates)].join(','),emergencyText,admissionText};
+}

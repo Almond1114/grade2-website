@@ -52,7 +52,10 @@ function renderNow() {
  // Stage slots are taken from the timetable so a cancellation/time change is reflected here too.
  const scheduledIds=new Set(data.schedule.map(event=>event.projectId).filter(Boolean));
  const candidates=[...data.projects.filter(project=>!scheduledIds.has(project.id)),...data.schedule.filter(event=>!asBool(event.cancelled))];
- const live=candidates.filter(item=>eventState(item,current)==='live'),soon=candidates.filter(item=>eventState(item,current)==='soon'&&((Number(item.start.slice(0,2))*60+Number(item.start.slice(3)))-(Number(current.time.slice(0,2))*60+Number(current.time.slice(3)))<=60).sort((a,b)=>a.start.localeCompare(b.start));
+ const live=candidates.filter(item=>eventState(item,current)==='live');
+ const soon=candidates
+  .filter(item=>eventState(item,current)==='soon'&&((Number(item.start.slice(0,2))*60+Number(item.start.slice(3)))-(Number(current.time.slice(0,2))*60+Number(current.time.slice(3)))<=60))
+  .sort((a,b)=>a.start.localeCompare(b.start));
  $('#live-list').innerHTML=live.map(item=>row(item)).join('')||empty('現在開催中の企画はありません。');
  $('#soon-list').innerHTML=soon.map(item=>row(item,{time:true})).join('')||empty('60分以内に始まる企画はありません。');
  if(selectedLocation)renderLocation();
@@ -83,7 +86,7 @@ function renderMap() {
 function renderLocation() {
  const location=data.locations.find(item=>item.id===selectedLocation);if(!location){$('#location-detail').innerHTML=empty('このフロアの場所は未登録です。');return;}
  $('#location-buttons').querySelectorAll('[data-location]').forEach(button=>button.setAttribute('aria-pressed',button.dataset.location===selectedLocation));
- const projects=data.projects.filter(project=>project.locationId===location.id);
+ const projects=data.projects.filter(project=>data.schedule.some(event=>event.projectId===project.id)?data.schedule.some(event=>event.projectId===project.id&&event.locationId===location.id):project.locationId===location.id);
  $('#location-detail').innerHTML=`<span class="eyebrow">${e(location.floor)}</span><h3>${e(location.name)}</h3><p>${e(location.description)}</p><h4>ここで開催する企画</h4>${projects.map(project=>{const events=data.schedule.filter(ev=>ev.projectId===project.id&&ev.locationId===location.id);const live=events.length?events.some(ev=>eventState(ev,clock())==='live'):eventState(project,clock())==='live';return `<div class="compact-row"><button data-project="${e(project.id)}">${e(project.title)}<small>${e(project.start)} — ${e(project.end)} ${live?' · 開催中':''}</small></button></div>`;}).join('')||empty('この場所の企画は未登録です。')}`;
 }
 function renderNews() {

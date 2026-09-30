@@ -18,7 +18,7 @@ document.querySelector('#run').onclick=async()=>{
    report('公開画面 '+width+'px CSS読込',frame.contentWindow.getComputedStyle(doc.querySelector('.hero')).position==='relative');
   }
   const data=await api.getPublic();report('下書きは非公開',data.projects.every(item=>item.status==='published')&&!('audit' in data));
-  writeStorage('session',await api.login(),true);
+  writeStorage('session',{...await api.login(),provider:api.mode},true);
   const admin=await api.getAdmin(),project=admin.projects.find(item=>item.status==='published');
   const updated=await api.mutate('updateCrowd',{collection:'projects',id:project.id,revision:project.revision,crowd:'quiet'});
   report('混雑更新が公開データに反映',(await api.getPublic()).projects.find(item=>item.id===project.id).crowd==='quiet');

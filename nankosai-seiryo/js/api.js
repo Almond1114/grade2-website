@@ -1,7 +1,7 @@
 import {SITE_CONFIG} from './site-config.js';
 import {readStorage,writeStorage,removeStorage} from './storage.js';
 import {clone,uid,asBool} from './utils.js';
-import {validateRecord} from './schema.js';
+import {validateRecord,validateSettings} from './schema.js';
 const COLLECTIONS = ['projects','news','schedule','locations'];
 export class ApiError extends Error {
   constructor(message,code='API_ERROR') {super(message);this.code=code;}
@@ -31,7 +31,7 @@ class DemoProvider {
       const data=await this.database();let saved;
       if(action==='saveSettings') {
         if(Number(payload.revision)!==Number(data.settings.revision))throw new ApiError('別の画面で設定が更新されました。再読み込みしてください。','CONFLICT');
-        data.settings={...data.settings,...payload,revision:Number(data.settings.revision)+1};saved=data.settings;
+        data.settings={...validateSettings({...data.settings,...payload}),revision:Number(data.settings.revision)+1};saved=data.settings;
       } else if(action==='uploadImage') {
         saved={id:uid('media'),provider:'demo',url:payload.dataUrl,fileId:'',...payload};delete saved.dataUrl;
         data.media.push(saved);
