@@ -104,18 +104,24 @@ function validateRecord_(name,input) {
  if(!input||typeof input!=='object'||Array.isArray(input))throw apiError_('BAD_INPUT','入力が不正です。');
  const record={};SCHEMAS[name].forEach(key=>{if(key in input)record[key]=input[key];});
  record.status=record.status||'draft';if(!['draft','published'].includes(record.status))throw apiError_('BAD_INPUT','公開状態が不正です。');
- const required=name==='locations'?['name','floor']:name==='news'?['title','body']:name==='schedule'?['title','date','start','end','locationId','category']:['title','organization','group','category','locationId','dates','start','end','description'];
+ const required=record.status==='draft'?[name==='locations'?'name':'title']:name==='locations'?['name','floor']:name==='news'?['title','body','publishAt']:name==='schedule'?['title','date','start','end','locationId','category']:['title','organization','group','category','locationId','dates','start','end','description'];
  required.forEach(key=>{if(!String(record[key]||'').trim())throw apiError_('BAD_INPUT','必須項目を入力してください。');});
  Object.keys(record).forEach(key=>{if(typeof record[key]==='string'){record[key]=record[key].trim();if(record[key].length>(['body','description'].includes(key)?4000:500))throw apiError_('BAD_INPUT','入力が長すぎます。');}});
  if(record.id&&!/^[a-zA-Z0-9_-]{1,100}$/.test(record.id))throw apiError_('BAD_INPUT','IDが不正です。');
- if(record.start&&(!validTime_(record.start)||!validTime_(record.end)||record.start>=record.end))throw apiError_('BAD_INPUT','開始・終了時刻を確認してください。');
+ if((record.start&&!validTime_(record.start))||(record.end&&!validTime_(record.end))||(record.start&&record.end&&record.start>=record.end))throw apiError_('BAD_INPUT','開始・終了時刻を確認してください。');
  const dates=record.dates?String(record.dates).split(','):record.date?[record.date]:[];if(dates.length>30||dates.some(date=>!validDate_(date.trim())))throw apiError_('BAD_INPUT','日付を確認してください。');
  if(record.locationId&&!readRecords_('locations').some(item=>item.id===record.locationId&&!item.deletedAt&&(record.status!=='published'||item.status==='published')))throw apiError_('BAD_INPUT','公開中の場所を選択してください。');
- if(name==='locations'&&!['1F','2F','3F'].includes(record.floor))throw apiError_('BAD_INPUT','フロアが不正です。');
- if(name==='projects'&&!['quiet','normal','busy'].includes(record.crowd))throw apiError_('BAD_INPUT','混雑状況が不正です。');
+ if(record.dates)record.dates=[...new Set(dates.map(date=>date.trim()))].join(',');
+ if(name==='locations'&&record.floor&&!['1F','2F','3F'].includes(record.floor))throw apiError_('BAD_INPUT','フロアが不正です。');
+ if(name==='projects'){record.crowd=record.crowd||'normal';if(!['quiet','normal','busy'].includes(record.crowd))throw apiError_('BAD_INPUT','混雑状況が不正です。');}
  if(record.mediaId&&!readRecords_('media').some(item=>item.id===record.mediaId&&!item.deletedAt))throw apiError_('BAD_INPUT','画像が見つかりません。');
  if(record.projectId&&!readRecords_('projects').some(item=>item.id===record.projectId&&!item.deletedAt&&(record.status!=='published'||item.status==='published')))throw apiError_('BAD_INPUT','関連する公開中企画を選択してください。');
  if(record.publishAt&&(!/^\d{4}-\d{2}-\d{2}T/.test(record.publishAt)||isNaN(Date.parse(record.publishAt))))throw apiError_('BAD_INPUT','公開日時が不正です。');
+ if(record.publishAt)record.publishAt=new Date(record.publishAt).toISOString();
+ if(record.id&&record.status==='draft'){
+  const references=name==='locations'?readRecords_('projects').concat(readRecords_('schedule')).filter(item=>item.locationId===record.id):name==='projects'?readRecords_('schedule').filter(item=>item.projectId===record.id):[];
+  if(references.some(item=>item.status==='published'&&!item.deletedAt))throw apiError_('IN_USE','公開中の企画・時刻表で使用しています。関連項目を先に下書きへ戻してください。');
+ }
  ['featured','important','cancelled'].forEach(key=>{if(key in record)record[key]=bool_(record[key]);});return record;
 }
 function saveRecord_(name,input) {
@@ -131,7 +137,9 @@ function deleteRecord_(payload){const name=validCollection_(payload.collection),
  record.deletedAt=new Date().toISOString();record.revision++;writeRecord_(name,record);audit_('deleteRecord',name,record.id,record.title||record.name);return record;
 }
 function saveSettings_(payload){const current=settings_();checkRevision_(current,payload.revision);const result={};SETTINGS_KEYS.forEach(key=>{result[key]=key in payload?payload[key]:current[key];});
- if(!String(result.eventDates||'').split(',').every(validDate_)||!validTime_(result.openTime)||!validTime_(result.closeTime)||result.openTime>=result.closeTime)throw apiError_('BAD_INPUT','開催日・開場・閉場時刻を確認してください。');
+ const dates=String(result.eventDates||'').split(',').map(date=>date.trim());
+ if(!dates.length||dates.length>30||!dates.every(validDate_)||!validTime_(result.openTime)||!validTime_(result.closeTime)||result.openTime>=result.closeTime)throw apiError_('BAD_INPUT','開催日・開場・閉場時刻を確認してください。');
+ result.eventDates=[...new Set(dates)].join(',');
  result.emergencyEnabled=bool_(result.emergencyEnabled);result.emergencyText=String(result.emergencyText||'').trim();result.admissionText=String(result.admissionText||'').trim();
  if(result.emergencyText.length>300||result.admissionText.length>4000||(result.emergencyEnabled&&!result.emergencyText))throw apiError_('BAD_INPUT','案内文を確認してください。');
  result.revision=current.revision+1;const sheet=spreadsheet_().getSheetByName('settings'),records=sheet.getLastRow()>1?sheet.getRange(2,1,sheet.getLastRow()-1,1).getDisplayValues():[];

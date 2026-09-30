@@ -38,6 +38,7 @@ class DemoProvider {
       } else {
         const collection=payload.collection;if(!COLLECTIONS.includes(collection))throw new ApiError('操作対象が不正です。');
         const items=data[collection],record=payload.record||{},index=items.findIndex(item=>item.id===(payload.id||record.id)),existing=items[index];
+        if((payload.id||record.id)&&(!existing||existing.deletedAt))throw new ApiError('対象が削除されています。最新一覧を確認してください。','NOT_FOUND');
         if(existing&&Number(payload.revision??record.revision)!==Number(existing.revision))throw new ApiError('別の画面で更新されました。最新データを読み込んでから保存してください。','CONFLICT');
         if(action==='deleteRecord') {
           if(!existing)throw new ApiError('対象が見つかりません。');

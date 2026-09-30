@@ -45,12 +45,12 @@ export function toast(message, isError = false) {
   setTimeout(() => item.remove(), 6500);
 }
 export function bindImageFallbacks(container = document) {
-  container.querySelectorAll('img[data-fallback]').forEach(image => image.addEventListener('error', () => {
+  container.querySelectorAll('img[data-fallback]').forEach(image => {if(image.dataset.fallbackBound)return;image.dataset.fallbackBound='true';image.addEventListener('error', () => {
     if (image.dataset.failed) return; image.dataset.failed = 'true'; image.src = image.dataset.fallback;
-  }, {once:true}));
+  }, {once:true});});
 }
 export function downloadJSON(value, name) {
   const url = URL.createObjectURL(new Blob([JSON.stringify(value,null,2)], {type:'application/json'}));
   const link = document.createElement('a'); link.href=url; link.download=name; link.click(); setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
-export function eventDates(settings) { return String(settings?.eventDates || SITE_CONFIG.content.eventDates.join(',')).split(',').filter(Boolean); }
+export function eventDates(settings) { return String(settings?.eventDates || SITE_CONFIG.content.eventDates.join(',')).split(',').map(date=>date.trim()).filter(Boolean); }
