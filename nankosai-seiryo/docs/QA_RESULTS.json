@@ -1,0 +1,28 @@
+{
+  "checkedAt": "2026-10-01T13:15:00+09:00",
+  "applicationCommit": "a0fc1a6791b75f771dd6935325281daec16b907a",
+  "assetVersion": "9fcad938b8a5",
+  "node": {
+    "passed": 36,
+    "failed": 0
+  },
+  "pagesBrowser": {
+    "browser": "Chrome",
+    "passed": 65,
+    "failed": 0,
+    "publicWidths": [320, 375, 390, 768, 1440],
+    "adminWidths": [320, 375, 768, 1440],
+    "realDevice": false
+  },
+  "backend": {
+    "mode": "demo",
+    "googleApiConnected": false,
+    "sheetsPrepared": true,
+    "driveFoldersPrepared": true,
+    "appsScriptSourcePrepared": true
+  },
+  "scope": {
+    "changedDirectory": "nankosai-seiryo/",
+    "rootSiteChanged": false
+  }
+}
