@@ -1,7 +1,7 @@
-import {api} from '../js/api.js?v=77db7237ab62';
-import {SITE_CONFIG} from '../js/site-config.js?v=77db7237ab62';
-import {writeStorage,readStorage} from '../js/storage.js?v=77db7237ab62';
-import {prepareImage} from '../js/media.js?v=77db7237ab62';
+import {api} from '../js/api.js?v=9fcad938b8a5';
+import {SITE_CONFIG} from '../js/site-config.js?v=9fcad938b8a5';
+import {writeStorage,readStorage} from '../js/storage.js?v=9fcad938b8a5';
+import {prepareImage} from '../js/media.js?v=9fcad938b8a5';
 
 let frame=document.querySelector('#frame');
 const results=document.querySelector('#results'),prefix='nankosai-seiryo-v2:';
@@ -44,7 +44,9 @@ document.querySelector('#run').onclick=async()=>{
   await check('絞り込み中の条件が見え、1操作で解除できる',()=>{const visible=!doc.querySelector('#active-filters').hidden;doc.querySelector('#active-filters [data-reset-filters]').click();return visible&&doc.querySelectorAll('#project-grid .project-card').length===8;});
   await check('企画名を押して詳細を開ける',()=>{doc.querySelector('#project-grid [data-project="brass"]').click();return doc.querySelector('#project-dialog').open;});
   await check('詳細の開催回が重複しない',()=>doc.querySelectorAll('.detail-slot').length===2);
+  doc.defaultView.history.replaceState(null,'','?project=brass&day=2027-07-10');
   await check('詳細から正しいフロアの地図へ移動できる',()=>{doc.querySelector('#project-detail [data-show-location="gym"]').click();return !doc.querySelector('#project-dialog').open&&doc.querySelector('#location-detail h3').textContent==='体育館'&&doc.querySelector('[data-floor="1F"]').getAttribute('aria-pressed')==='true';});
+  await check('地図へ移動後は再読込で詳細を開き直さないURLになる',()=>{const url=new URL(doc.defaultView.location.href);return url.hash==='#map'&&!url.searchParams.has('project')&&url.searchParams.get('day')==='2027-07-10';});
   await check('選択した部屋をSVGでも強調する',async()=>{await until(()=>doc.querySelector('#floor-map').contentDocument?.querySelector('[data-location="gym"]')?.classList.contains('selected-room'));return true;});
   await check('お気に入りが日別の予定になる',()=>{doc.querySelector('#project-grid [data-favorite="deep"]').click();return doc.querySelectorAll('.plan-row').length===1&&doc.querySelector('#favorite-count').textContent==='1';});
   await check('両日の予定をまとめて見られる',()=>{const checkbox=doc.querySelector('#plan-all-dates');checkbox.click();return doc.querySelectorAll('.plan-row').length===2;});

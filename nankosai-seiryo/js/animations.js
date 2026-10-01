@@ -1,4 +1,4 @@
-import {SITE_CONFIG} from './site-config.js?v=77db7237ab62';
+import {SITE_CONFIG} from './site-config.js?v=9fcad938b8a5';
 let revealObserver;
 export function revealElements() {
   if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;

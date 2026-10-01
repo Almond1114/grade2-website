@@ -1,4 +1,4 @@
-import {toast} from './utils.js?v=77db7237ab62';
+import {toast} from './utils.js?v=9fcad938b8a5';
 export async function registerServiceWorker() {
  if(!('serviceWorker' in navigator)||!window.isSecureContext)return;
  try {

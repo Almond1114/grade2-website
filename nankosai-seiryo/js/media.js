@@ -1,4 +1,4 @@
-import {SITE_CONFIG} from './site-config.js?v=77db7237ab62';
+import {SITE_CONFIG} from './site-config.js?v=9fcad938b8a5';
 export async function prepareImage(file) {
   if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw new Error('JPEG・PNG・WebP画像を選択してください。');
   if(file.size>25*1024*1024)throw new Error('25MB以下の画像を選択してください。');

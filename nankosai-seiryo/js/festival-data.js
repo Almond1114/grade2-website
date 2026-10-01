@@ -1,4 +1,4 @@
-import {asBool, projectDates} from './utils.js?v=77db7237ab62';
+import {asBool, projectDates} from './utils.js?v=9fcad938b8a5';
 
 /** A timetable entry is the authority for a linked project's date, time and venue. */
 export function projectSlots(project, data, date = '') {
