@@ -184,7 +184,7 @@ function changeDate(date) {
 
 function resetFilters() {
   for (const selector of ['#project-search', '#filter-category', '#filter-group', '#filter-crowd']) $(selector).value = '';
-  $('#filter-favorites').checked = false; renderProjects(); $('#project-search').focus({preventScroll:true});
+  $('#filter-favorites').checked = false; if (data) renderProjects(); $('#project-search').focus({preventScroll:true});
 }
 
 function renderAll() {
@@ -230,8 +230,8 @@ $('#project-search').addEventListener('keydown', event => { if (event.key === 'E
 for (const selector of ['#filter-category','#filter-group','#filter-crowd','#filter-favorites']) $(selector).addEventListener('change', () => data && renderProjects());
 $('#reset-filters').addEventListener('click', resetFilters);
 for (const selector of ['#project-date','#schedule-date','#plan-date']) $(selector).addEventListener('change', event => data && changeDate(event.target.value));
-$('#plan-all-dates').addEventListener('change', renderPlan);
-$('#schedule-favorites').addEventListener('change', renderTimeline);
+$('#plan-all-dates').addEventListener('change', () => data && renderPlan());
+$('#schedule-favorites').addEventListener('change', () => data && renderTimeline());
 $('#refresh-data').addEventListener('click', () => refresh({manual:true}));
 $('#demo-clock-toggle').addEventListener('click', () => {
   if (!data) return; sampleClock = !sampleClock;

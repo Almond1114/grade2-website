@@ -31,7 +31,7 @@ function doPost(event) {
   const token=String(params.token||'');requireSession_(token);
   if(action==='logout'){CacheService.getScriptCache().remove('session:'+sha256_(token));return json_({ok:true,data:{loggedOut:true}});}
   if(action==='adminBootstrap')return json_({ok:true,data:bootstrap_(true)});
-  if(!['saveRecord','deleteRecord','updateCrowd','saveSettings','uploadImage'].includes(action))throw apiError_('BAD_ACTION','許可されていない操作です。');
+  if(!['saveRecord','deleteRecord','updateCrowd','saveSettings','uploadImage','deleteImage'].includes(action))throw apiError_('BAD_ACTION','許可されていない操作です。');
   const lock=LockService.getScriptLock();if(!lock.tryLock(20000))throw apiError_('BUSY','他の保存処理が実行中です。少し待って再操作してください。');
   try {
    // Idempotency prevents duplicated uploads/saves after an ambiguous connection failure.
@@ -40,6 +40,7 @@ function doPost(event) {
    let result;
    if(action==='saveSettings')result=saveSettings_(payload);
    else if(action==='uploadImage')result=uploadImage_(payload);
+   else if(action==='deleteImage')result=deleteImage_(payload);
    else if(action==='deleteRecord')result=deleteRecord_(payload);
    else if(action==='updateCrowd')result=updateCrowd_(payload);
    else result=saveRecord_(payload.collection,payload.record);
@@ -156,6 +157,18 @@ function uploadImage_(payload){
  try{file=DriveApp.getFolderById(folderId).createFile(Utilities.newBlob(bytes,match[1],fileName));file.setSharing(DriveApp.Access.ANYONE_WITH_LINK,DriveApp.Permission.VIEW);
  const record={id:'media_'+Utilities.getUuid(),fileName:fileName,fileId:file.getId(),provider:'drive',url:'',alt:String(payload.alt||'').slice(0,200),mimeType:match[1],width:Math.max(0,Math.min(1600,Number(payload.width)||0)),height:Math.max(0,Math.min(1600,Number(payload.height)||0)),bytes:bytes.length,uploadedAt:new Date().toISOString(),revision:1,updatedAt:new Date().toISOString(),deletedAt:''};writeRecord_('media',record);audit_('uploadImage','media',record.id,fileName);return record;
  }catch(error){if(file)try{file.setTrashed(true);}catch(ignore){}throw apiError_('UPLOAD_FAILED','画像を保存できません。Driveの権限・共有設定・容量を確認してください。');}
+}
+function deleteImage_(payload){
+ const record=readRecords_('media').find(item=>item.id===payload.id&&!item.deletedAt);
+ if(!record)throw apiError_('NOT_FOUND','画像が見つかりません。');checkRevision_(record,payload.revision);
+ if(record.provider!=='drive'||!record.fileId)throw apiError_('BAD_INPUT','標準画像は削除できません。');
+ if(readRecords_('projects').some(project=>project.mediaId===record.id&&!project.deletedAt))throw apiError_('IN_USE','企画で使用中の画像です。企画の画像を変更してから削除してください。');
+ const folderId=PropertiesService.getScriptProperties().getProperty('DRIVE_FOLDER_ID');if(!folderId)throw apiError_('NOT_CONFIGURED','画像フォルダが未設定です。');
+ const file=DriveApp.getFileById(record.fileId),parents=file.getParents();let belongs=false;
+ while(parents.hasNext())if(parents.next().getId()===folderId)belongs=true;
+ if(!belongs)throw apiError_('BAD_INPUT','専用画像フォルダ以外のファイルは操作できません。');
+ file.setTrashed(true);record.deletedAt=new Date().toISOString();record.revision++;record.updatedAt=record.deletedAt;
+ writeRecord_('media',record);audit_('deleteImage','media',record.id,record.fileName);return record;
 }
 function login_(password){
  const lock=LockService.getScriptLock();if(!lock.tryLock(10000))throw apiError_('BUSY','ログイン処理中です。少し待ってください。');

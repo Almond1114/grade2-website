@@ -33,8 +33,15 @@ class DemoProvider {
         if(Number(payload.revision)!==Number(data.settings.revision))throw new ApiError('別の画面で設定が更新されました。再読み込みしてください。','CONFLICT');
         data.settings={...validateSettings({...data.settings,...payload}),revision:Number(data.settings.revision)+1};saved=data.settings;
       } else if(action==='uploadImage') {
-        saved={id:uid('media'),provider:'demo',url:payload.dataUrl,fileId:'',...payload};delete saved.dataUrl;
+        saved={...payload,id:uid('media'),provider:'demo',url:payload.dataUrl,fileId:'',revision:1,updatedAt:new Date().toISOString(),deletedAt:''};delete saved.dataUrl;
         data.media.push(saved);
+      } else if(action==='deleteImage') {
+        const index=data.media.findIndex(item=>item.id===payload.id&&!item.deletedAt),image=data.media[index];
+        if(!image)throw new ApiError('画像が見つかりません。','NOT_FOUND');
+        if(image.provider!=='demo')throw new ApiError('標準画像は削除できません。','BAD_INPUT');
+        if(Number(image.revision)!==Number(payload.revision))throw new ApiError('画像が更新されています。最新情報を読み込んでください。','CONFLICT');
+        if(data.projects.some(project=>project.mediaId===image.id&&!project.deletedAt))throw new ApiError('企画で使用中の画像です。企画の画像を変更してから削除してください。','IN_USE');
+        saved={...image,url:'',bytes:0,deletedAt:new Date().toISOString(),revision:Number(image.revision)+1};data.media[index]=saved;
       } else {
         const collection=payload.collection;if(!COLLECTIONS.includes(collection))throw new ApiError('操作対象が不正です。');
         const items=data[collection],record=payload.record||{},index=items.findIndex(item=>item.id===(payload.id||record.id)),existing=items[index];
@@ -55,7 +62,7 @@ class DemoProvider {
           index>=0?items[index]=saved:items.push(saved);
         } else throw new ApiError('操作が不正です。');
       }
-      data.audit.unshift({id:uid('audit'),time:new Date().toISOString(),action,collection:payload.collection||'settings',recordId:saved?.id||'',detail:saved?.title||saved?.fileName||saved?.name||'運営設定'});
+      data.audit.unshift({id:uid('audit'),time:new Date().toISOString(),action,collection:payload.collection||(['uploadImage','deleteImage'].includes(action)?'media':'settings'),recordId:saved?.id||'',detail:saved?.title||saved?.fileName||saved?.name||'運営設定'});
       data.audit=data.audit.slice(0,300);writeStorage('database',data);return clone(saved);
     };
     return navigator.locks ? navigator.locks.request('nankosai-demo-write',operation) : operation();

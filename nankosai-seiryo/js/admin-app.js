@@ -25,17 +25,21 @@ async function reload(){data=await api.getAdmin();renderEmergency();}
 function renderEmergency(){const banner=$('#emergency-banner');banner.hidden=!asBool(data.settings.emergencyEnabled)||!data.settings.emergencyText;banner.textContent=data.settings.emergencyText||'';}
 function trackSettingsForm(form,key,original){
  const snapshot=readEditorDraft(api.mode,'settings',key);
- if(snapshot&&Number(snapshot.record.revision)===Number(original.revision)){
-  for(const control of form.elements){if(!control.name||!(control.name in snapshot.record))continue;if(control.type==='checkbox')control.checked=asBool(snapshot.record[control.name]);else control.value=snapshot.record[control.name];}
-  dirty=true;const note=document.createElement('p');note.className='info-note';note.textContent='入力途中の設定を復元しました。まだ公開されていません。';form.prepend(note);
- }
  const remember=()=>{dirty=true;keepEditorDraft(api.mode,'settings',key,readForm(form,original));};
+ const fill=values=>{for(const control of form.elements){if(!control.name||!(control.name in values))continue;if(control.type==='checkbox')control.checked=asBool(values[control.name]);else control.value=values[control.name];}};
+ if(snapshot){
+  const sameRevision=Number(snapshot.record.revision)===Number(original.revision),note=document.createElement('div');note.className='info-note settings-recovery';
+  const message=document.createElement('p');message.textContent=sameRevision?'入力途中の設定を復元しました。まだ公開されていません。':'一時保存の後に設定が更新されています。最新の設定を表示しています。';note.append(message);
+  if(sameRevision){fill(snapshot.record);dirty=true;}
+  else{const restore=document.createElement('button');restore.type='button';restore.className='text-button';restore.textContent='以前の入力を確認する';restore.onclick=()=>{fill(snapshot.record);remember();message.textContent='以前の入力を復元しました。最新の設定と比較してから保存してください。';restore.remove();};note.append(restore);}
+  const discard=document.createElement('button');discard.type='button';discard.className='text-button';discard.textContent='一時保存を破棄';discard.onclick=()=>{if(confirm('一時保存した設定の入力を破棄しますか？保存済みの設定は残ります。')){clearEditorDraft(api.mode,'settings',key);fill(original);dirty=false;note.remove();}};note.append(discard);form.prepend(note);
+ }
  form.addEventListener('input',remember);form.addEventListener('change',remember);
 }
 function applySaved(action,payload,saved){
  if(action==='saveSettings')data.settings=saved;
- else{const collection=action==='uploadImage'?'media':payload.collection,index=data[collection].findIndex(item=>item.id===saved.id);if(index<0)data[collection].push(saved);else data[collection][index]=saved;}
- data.audit.unshift({time:new Date().toISOString(),action,collection:payload.collection||(action==='uploadImage'?'media':'settings'),detail:saved.title||saved.name||saved.fileName||'運営設定'});renderEmergency();
+ else{const collection=['uploadImage','deleteImage'].includes(action)?'media':payload.collection,index=data[collection].findIndex(item=>item.id===saved.id);if(index<0)data[collection].push(saved);else data[collection][index]=saved;}
+ data.audit.unshift({time:new Date().toISOString(),action,collection:payload.collection||(['uploadImage','deleteImage'].includes(action)?'media':'settings'),detail:saved.title||saved.name||saved.fileName||'運営設定'});renderEmergency();
 }
 async function mutate(action,payload,message){
  if(busy)return false;busy=true;$('#admin-workspace').setAttribute('aria-busy','true');
@@ -128,15 +132,21 @@ function renderEditor({discardTemporary=false,forceRestore=false}={}){
  });
  $('#delete-record')?.addEventListener('click',async()=>{if(busy||!confirm(`「${original.title||original.name}」を削除しますか？公開ページと管理一覧から取り除きます。`))return;if(await mutate('deleteRecord',{collection,id:original.id,revision:original.revision},'削除しました')){clearEditorDraft(api.mode,collection,recordId);editingId='';rememberView();renderManagement();}});
 }
+function mediaDeleteControl(media){
+ if(!['drive','demo'].includes(media.provider))return '';
+ const used=items('projects').filter(project=>project.mediaId===media.id).length;
+ return `<p class="media-usage">${used?'使用中：'+used+'企画（下書きを含む）':'現在は使用していません'}</p><button class="delete-button" data-delete-media="${e(media.id)}" ${used?'disabled':''}>画像を削除</button>`;
+}
 function renderMedia(){
  imageRequest++;pendingImage=null;
- $('#admin-workspace').innerHTML=pageTitle('画像ライブラリ','画像はブラウザで縮小・圧縮してから保存します。')+`<section class="upload-zone"><h2>新しい画像を追加</h2><p>JPEG・PNG・WebP / 元画像25MB以下 / 最大1600px・送信2MB以下に圧縮。位置情報などのEXIFは再描画で取り除きます。</p><label for="image-file">画像を選択<input id="image-file" type="file" accept="image/jpeg,image/png,image/webp"></label><div id="upload-preview" class="upload-preview"></div><p id="upload-error" class="form-error" role="alert"></p></section><div class="media-grid">${items('media').map(media=>`<article class="media-card"><img src="${e(imageURL(media)||'./assets/posters/sky.svg')}" alt="${e(media.alt||media.fileName)}" data-fallback="./assets/posters/sky.svg" loading="lazy"><div><p>${e(media.fileName)}</p><small>${e(media.width)}×${e(media.height)} / ${Math.round(Number(media.bytes||0)/1024)} KB<br>${media.provider==='demo'?'ブラウザ内':media.provider==='drive'?'Google Drive':'標準画像'}</small><button class="text-button" data-copy-media="${e(media.id)}">画像IDをコピー</button></div></article>`).join('')}</div>`;
+ $('#admin-workspace').innerHTML=pageTitle('画像ライブラリ','画像はブラウザで縮小・圧縮してから保存します。')+`<section class="upload-zone"><h2>新しい画像を追加</h2><p>JPEG・PNG・WebP / 元画像25MB以下 / 最大1600px・送信2MB以下に圧縮。位置情報などのEXIFは再描画で取り除きます。</p><label for="image-file">画像を選択<input id="image-file" type="file" accept="image/jpeg,image/png,image/webp"></label><div id="upload-preview" class="upload-preview"></div><p id="upload-error" class="form-error" role="alert"></p></section><div class="media-grid">${items('media').map(media=>`<article class="media-card"><img src="${e(imageURL(media)||'./assets/posters/sky.svg')}" alt="${e(media.alt||media.fileName)}" data-fallback="./assets/posters/sky.svg" loading="lazy"><div><p>${e(media.fileName)}</p><small>${e(media.width)}×${e(media.height)} / ${Math.round(Number(media.bytes||0)/1024)} KB<br>${media.provider==='demo'?'ブラウザ内':media.provider==='drive'?'Google Drive':'標準画像'}</small><button class="text-button" data-copy-media="${e(media.id)}">画像IDをコピー</button>${mediaDeleteControl(media)}</div></article>`).join('')}</div>`;
  bindImageFallbacks();$('#image-file').addEventListener('change',async event=>{
   const request=++imageRequest,file=event.target.files[0];pendingImage=null;dirty=!!file;$('#upload-error').textContent='';$('#upload-preview').textContent=file?'画像を縮小しています…':'';if(!file)return;
   try{
    const prepared=await prepareImage(file);if(section!=='media'||request!==imageRequest)return;pendingImage=prepared;
    $('#upload-preview').innerHTML=`<img src="${e(prepared.dataUrl)}" alt="アップロード前の確認"><div><p>${e(prepared.fileName)}<br>${prepared.width}×${prepared.height} / ${Math.round(prepared.bytes/1024)} KB</p><label>画像の説明<small>写真の内容を短く書きます。見えない方への説明に使います。</small><input id="upload-alt" maxlength="200" placeholder="例：窓辺に並んだ青いドリンク"></label><button id="upload-submit" class="button">この画像を保存</button></div>`;
    $('#upload-submit').addEventListener('click',async()=>{if(!pendingImage||busy)return;const payload={...pendingImage,alt:$('#upload-alt').value.trim()};if(await mutate('uploadImage',payload,'画像を保存しました。企画の「企画画像」から選べます。')){pendingImage=null;renderMedia();}});
+   const cancel=document.createElement('button');cancel.type='button';cancel.className='button button-secondary';cancel.textContent='取り消す';cancel.id='upload-cancel';cancel.onclick=()=>{if(!busy){dirty=false;renderMedia();}};$('#upload-submit').after(cancel);
   }catch(error){if(section==='media'&&request===imageRequest){$('#upload-preview').textContent='';$('#upload-error').textContent=error.message;dirty=false;}}
  });
 }
@@ -144,11 +154,11 @@ function renderSettings(){
  const settings=data.settings;$('#admin-workspace').innerHTML=pageTitle('サイト設定','当日の開催情報と緊急告知を管理します。')+`<div class="settings-layout"><form id="settings-form" class="admin-panel settings-form">${field('eventDates','開催日','YYYY-MM-DD。複数日はカンマ区切りで入力します。',settings.eventDates,{required:true,maxLength:400})}${field('openTime','開場時刻','ヒーローの開催時間に表示します。',settings.openTime,{type:'time',required:true})}${field('closeTime','閉場時刻','開場時刻より後の時刻を入力してください。',settings.closeTime,{type:'time',required:true})}${field('admissionText','受付・入場案内','公開サイトのアクセス欄に表示します。',settings.admissionText,{type:'textarea'})}${field('emergencyText','緊急バナーの文面','全ページ最上部に表示します。300文字以内。',settings.emergencyText,{type:'textarea',maxLength:300})}${field('emergencyEnabled','緊急バナーを表示','文面を入力して、チェックを入れて保存すると表示されます。',settings.emergencyEnabled,{type:'checkbox'})}<button class="button" type="submit">運営設定を保存</button><p id="settings-error" class="form-error" role="alert"></p></form><div class="read-only-config"><h3>文面・フォント・デザインの変更</h3><p>サイトタイトル、テーマ文字、キャッチコピー、色、文字サイズ、余白、角丸、演出は <code>js/site-config.js</code> の定数で変更します。管理画面から基本デザインを書き換える操作はありません。</p><p class="connection-details">接続モード：${api.mode==='demo'?'Demo Provider':'Google Apps Script'}<br>${api.mode==='google'?'API URL：'+e(SITE_CONFIG.api.url):'API URLは未設定です。Google接続後にコード側で設定します。'}</p></div><section class="admin-panel"><h2>データのバックアップ</h2><p>現在の管理データをJSONとして保存できます。認証情報は含みません。</p><button id="export-data" class="button button-secondary">JSONをダウンロード</button></section></div>`;
  const form=$('#settings-form');trackSettingsForm(form,'full',settings);form.addEventListener('submit',async event=>{event.preventDefault();try{const values=validateSettings(readForm(form,settings));if(await mutate('saveSettings',values,'運営設定を保存しました')){clearEditorDraft(api.mode,'settings','full');renderSettings();}}catch(error){$('#settings-error').textContent=error.message;}});$('#export-data').addEventListener('click',()=>downloadJSON(data,'nankosai-backup-'+japanNow().date+'.json'));
 }
-function actionLabel(action){return {saveRecord:'保存',deleteRecord:'削除',updateCrowd:'混雑変更',saveSettings:'設定変更',uploadImage:'画像保存'}[action]||action;}
+function actionLabel(action){return {saveRecord:'保存',deleteRecord:'削除',updateCrowd:'混雑変更',saveSettings:'設定変更',uploadImage:'画像保存',deleteImage:'画像削除'}[action]||action;}
 function renderAudit(){ $('#admin-workspace').innerHTML=pageTitle('変更履歴','いつ・何を変更したか確認できます。最新300件を表示します。')+`<div class="table-scroll"><table class="audit-table"><thead><tr><th>日時（日本時間）</th><th>操作</th><th>対象</th><th>内容</th></tr></thead><tbody>${data.audit.slice(0,300).map(item=>`<tr><td><time>${e(new Date(item.time).toLocaleString('ja-JP',{timeZone:'Asia/Tokyo'}))}</time></td><td>${e(actionLabel(item.action))}</td><td>${e(menu.find(m=>m[0]===item.collection)?.[1]||item.collection)}</td><td>${e(item.detail)}</td></tr>`).join('')}</tbody></table></div>`; }
 function render(){renderNav();({dashboard:renderDashboard,media:renderMedia,settings:renderSettings,audit:renderAudit}[section]||renderManagement)();}
-async function enterAdmin(){await reload();$('#login-screen').hidden=true;$('#admin-shell').hidden=false;$('#provider-indicator').textContent=api.mode==='demo'?'デモモード':'Google接続';$('#admin-demo-note').hidden=api.mode!=='demo';const view=readStorage('admin-view',null,true);if(view&&menu.some(item=>item[0]===view.section)){section=view.section;editingId=view.editingId||'';}render();}
-function rememberView(){try{writeStorage('admin-view',{section,editingId},true);}catch{}}
+async function enterAdmin(){await reload();$('#login-screen').hidden=true;$('#admin-shell').hidden=false;$('#provider-indicator').textContent=api.mode==='demo'?'デモモード':'Google接続';$('#admin-demo-note').hidden=api.mode!=='demo';const view=readStorage('admin-view',null,true);if(view&&(!view.provider||view.provider===api.mode)&&menu.some(item=>item[0]===view.section)){section=view.section;editingId=view.editingId||'';}if(editingId&&!items(section).some(item=>item.id===editingId)){editingId='';toast('前回の編集項目が見つからないため、新規作成を表示します。');}render();}
+function rememberView(){try{writeStorage('admin-view',{section,editingId,provider:api.mode},true);}catch{}}
 applySiteConfig();$('#password-field').hidden=api.mode==='demo';$('#admin-password').required=api.mode==='google';$('#login-button').textContent=api.mode==='demo'?'デモ管理を試す':'ログイン';$('#login-mode-note').textContent=api.mode==='demo'?'パスワード不要のデモです。このブラウザ内で編集を試せます。':'管理者パスワードはサーバー側で照合します。';
 $('#login-form').addEventListener('submit',async event=>{event.preventDefault();$('#login-button').disabled=true;$('#login-error').textContent='';try{const session=await api.login($('#admin-password').value);writeStorage('session',{...session,provider:api.mode},true);$('#admin-password').value='';await enterAdmin();}catch(error){$('#login-error').textContent=error.message;}finally{$('#login-button').disabled=false;}});
 $('#logout-button').addEventListener('click',async()=>{if(!requireLeave())return;try{await api.logout();}catch{}removeStorage('session',true);dirty=false;data=null;$('#admin-shell').hidden=true;$('#login-screen').hidden=false;toast('ログアウトしました');});
@@ -160,6 +170,12 @@ document.addEventListener('click',async event=>{
  if(button.dataset.openRecord&&requireLeave()){section=button.dataset.collection;editingId=button.dataset.openRecord;dirty=false;rememberView();render();if(innerWidth<900)focusEditor();}
  if(button.dataset.crowdId){if(dirty||busy){toast('編集中の内容を保存してから混雑状況を変更してください。',true);return;}const project=items('projects').find(p=>p.id===button.dataset.crowdId);if(!project||project.crowd===button.dataset.crowd)return;button.disabled=true;if(await mutate('updateCrowd',{collection:'projects',id:project.id,revision:project.revision,crowd:button.dataset.crowd},'混雑状況を更新しました'))render();else button.disabled=false;}
  if(button.dataset.copyMedia){try{await navigator.clipboard.writeText(button.dataset.copyMedia);toast('画像IDをコピーしました');}catch{toast('画像ID：'+button.dataset.copyMedia);}}
+ if(button.dataset.deleteMedia){
+  if(dirty||busy){toast('選択中の画像を保存するか、取り消してから削除してください。',true);return;}
+  const image=items('media').find(item=>item.id===button.dataset.deleteMedia);if(!image)return;
+  const explanation=api.mode==='demo'?'このブラウザの画像データを削除します。元の写真ファイルは削除しません。':'専用Google Driveフォルダの画像をゴミ箱へ移します。';
+  if(confirm(`「${image.fileName}」を画像ライブラリから削除しますか？${explanation}`)&&await mutate('deleteImage',{id:image.id,revision:image.revision},'画像を削除しました'))renderMedia();
+ }
 });
 document.addEventListener('keydown',event=>{if(!(event.ctrlKey||event.metaKey)||event.key.toLowerCase()!=='s'||$('#admin-shell').hidden)return;event.preventDefault();if(busy)return;$('#record-form,#settings-form,#emergency-form')?.requestSubmit();});
 window.addEventListener('beforeunload',event=>{if(dirty||busy){event.preventDefault();event.returnValue='';}});

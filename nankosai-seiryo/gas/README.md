@@ -24,8 +24,11 @@ GET ?action=bootstrap は匿名で公開データのみ返します。POSTはURL
 |updateCrowd|企画の混雑変更|
 |saveSettings|開催情報・緊急バナー|
 |uploadImage|Driveへの画像保存とmedia記録|
+|deleteImage|未使用の画像を専用Driveフォルダのゴミ箱へ移し、mediaを論理削除|
 
 公開GETのみ15秒キャッシュ。変更時に失効。書き込みはScriptLock、再送結果は10分以内のCacheServiceで同じrequestIdに対して再利用します。キャッシュの早期破棄や新requestIdでの再操作は完全な重複防止保証ではありません。通信失敗後は最新状態を確認してください。
+
+deleteImageはid / revisionを受け取ります。下書きを含め、削除されていない企画が参照している画像は拒否します。標準画像は削除対象外です。Drive File IDだけで任意のファイルを操作せず、DRIVE_FOLDER_IDに所属するアップロード画像だけをゴミ箱へ移します。復元する場合はDriveで画像を戻し、mediaのdeletedAtを空にします。
 
 ## 権限と制約
 このAPIはデプロイ所有者としてSheetとDriveへアクセスします。フォルダ全体を公開せず、アップロードした公開用画像だけをリンク共有します。個人情報をSheetへ混在させないでください。Google割当量、実行時間、Drive画像配信制限を超える大規模イベントには専用DB/画像CDNを検討してください。
