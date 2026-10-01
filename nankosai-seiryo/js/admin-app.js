@@ -1,13 +1,13 @@
-import {SITE_CONFIG,applySiteConfig} from './site-config.js?v=f4753749f056';
-import {api} from './api.js?v=f4753749f056';
-import {readStorage,writeStorage,removeStorage} from './storage.js?v=f4753749f056';
-import {readEditorDraft,keepEditorDraft,clearEditorDraft} from './editor-storage.js?v=f4753749f056';
-import {matchesSearch} from './festival-data.js?v=f4753749f056';
-import {escapeHTML as e,asBool,statusLabels,crowdLabels,imageURL,toast,eventState,japanNow,eventDates,bindImageFallbacks,downloadJSON} from './utils.js?v=f4753749f056';
-import {icon} from './icons.js?v=f4753749f056';
-import {prepareImage} from './media.js?v=f4753749f056';
-import {projectCard} from './cards.js?v=f4753749f056';
-import {validateRecord,validateSettings} from './schema.js?v=f4753749f056';
+import {SITE_CONFIG,applySiteConfig} from './site-config.js?v=77db7237ab62';
+import {api} from './api.js?v=77db7237ab62';
+import {readStorage,writeStorage,removeStorage} from './storage.js?v=77db7237ab62';
+import {readEditorDraft,keepEditorDraft,clearEditorDraft} from './editor-storage.js?v=77db7237ab62';
+import {matchesSearch} from './festival-data.js?v=77db7237ab62';
+import {escapeHTML as e,asBool,statusLabels,crowdLabels,imageURL,toast,eventState,japanNow,eventDates,bindImageFallbacks,downloadJSON} from './utils.js?v=77db7237ab62';
+import {icon} from './icons.js?v=77db7237ab62';
+import {prepareImage} from './media.js?v=77db7237ab62';
+import {projectCard} from './cards.js?v=77db7237ab62';
+import {validateRecord,validateSettings} from './schema.js?v=77db7237ab62';
 const $=selector=>document.querySelector(selector);
 const menu=[['dashboard','ダッシュボード','grid'],['projects','企画管理','wind'],['news','お知らせ管理','news'],['schedule','タイムテーブル','clock'],['locations','場所・校内マップ','map'],['media','画像','image'],['settings','サイト設定','settings'],['audit','変更履歴','history']];
 let data=null,section='dashboard',editingId='',dirty=false,busy=false,pendingImage=null,listQuery='',listStatus='',imageRequest=0;
@@ -139,7 +139,7 @@ function mediaDeleteControl(media){
 }
 function renderMedia(){
  imageRequest++;pendingImage=null;
- $('#admin-workspace').innerHTML=pageTitle('画像ライブラリ','画像はブラウザで縮小・圧縮してから保存します。')+`<section class="upload-zone"><h2>新しい画像を追加</h2><p>JPEG・PNG・WebP / 元画像25MB以下 / 最大1600px・送信2MB以下に圧縮。位置情報などのEXIFは再描画で取り除きます。</p><label for="image-file">画像を選択<input id="image-file" type="file" accept="image/jpeg,image/png,image/webp"></label><div id="upload-preview" class="upload-preview"></div><p id="upload-error" class="form-error" role="alert"></p></section><div class="media-grid">${items('media').map(media=>`<article class="media-card"><img src="${e(imageURL(media)||'./assets/posters/sky.svg')}" alt="${e(media.alt||media.fileName)}" data-fallback="./assets/posters/sky.svg" loading="lazy"><div><p>${e(media.fileName)}</p><small>${e(media.width)}×${e(media.height)} / ${Math.round(Number(media.bytes||0)/1024)} KB<br>${media.provider==='demo'?'ブラウザ内':media.provider==='drive'?'Google Drive':'標準画像'}</small><button class="text-button" data-copy-media="${e(media.id)}">画像IDをコピー</button>${mediaDeleteControl(media)}</div></article>`).join('')}</div>`;
+ $('#admin-workspace').innerHTML=pageTitle('画像ライブラリ','画像はブラウザで縮小・圧縮してから保存します。')+`<section class="upload-zone"><h2>新しい画像を追加</h2><p>JPEG・PNG・WebP / 元画像25MB以下 / 最大1600px・送信2MB以下に圧縮。位置情報などのEXIFは再描画で取り除きます。</p><p class="media-sharing-note">${api.mode==='google'?'保存する画像は表示用のリンク共有になります。企画の公開は企画管理で行います。':'デモ画像はこのブラウザ内だけに保存されます。'}</p><label for="image-file">画像を選択<input id="image-file" type="file" accept="image/jpeg,image/png,image/webp"></label><div id="upload-preview" class="upload-preview"></div><p id="upload-error" class="form-error" role="alert"></p></section><div class="media-grid">${items('media').map(media=>`<article class="media-card"><img src="${e(imageURL(media)||'./assets/posters/sky.svg')}" alt="${e(media.alt||media.fileName)}" data-fallback="./assets/posters/sky.svg" loading="lazy"><div><p>${e(media.fileName)}</p><small>${e(media.width)}×${e(media.height)} / ${Math.round(Number(media.bytes||0)/1024)} KB<br>${media.provider==='demo'?'ブラウザ内':media.provider==='drive'?'Google Drive':'標準画像'}</small><button class="text-button" data-copy-media="${e(media.id)}">画像IDをコピー</button>${mediaDeleteControl(media)}</div></article>`).join('')}</div>`;
  bindImageFallbacks();$('#image-file').addEventListener('change',async event=>{
   const request=++imageRequest,file=event.target.files[0];pendingImage=null;dirty=!!file;$('#upload-error').textContent='';$('#upload-preview').textContent=file?'画像を縮小しています…':'';if(!file)return;
   try{

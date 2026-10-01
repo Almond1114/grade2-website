@@ -1,4 +1,4 @@
-import {readStorage, writeStorage, removeStorage} from './storage.js?v=f4753749f056';
+import {readStorage, writeStorage, removeStorage} from './storage.js?v=77db7237ab62';
 const key = (provider, collection, id) => `unsaved:${provider}:${collection}:${id || 'new'}`;
 
 export const readEditorDraft = (provider, collection, id) => readStorage(key(provider, collection, id), null, true);
