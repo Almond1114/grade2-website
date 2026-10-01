@@ -1,7 +1,7 @@
-import {escapeHTML as e,imageURL,crowdBadge} from './utils.js';
-import {favoriteIds} from './storage.js';
-import {icon} from './icons.js';
-import {projectSummary} from './festival-data.js';
+import {escapeHTML as e,imageURL,crowdBadge} from './utils.js?v=f4753749f056';
+import {favoriteIds} from './storage.js?v=f4753749f056';
+import {icon} from './icons.js?v=f4753749f056';
+import {projectSummary} from './festival-data.js?v=f4753749f056';
 export function favoriteButton(project,staticPosition=false) {
  const selected=favoriteIds().has(project.id);
  return `<button class="favorite-button${staticPosition?' static-favorite':''}" data-favorite="${e(project.id)}" aria-label="${e(project.title)}をお気に入り${selected?'から削除':'に追加'}" aria-pressed="${selected}">${icon('star')}</button>`;

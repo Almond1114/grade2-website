@@ -1,7 +1,7 @@
-import {api} from '../js/api.js';
-import {SITE_CONFIG} from '../js/site-config.js';
-import {writeStorage,readStorage} from '../js/storage.js';
-import {prepareImage} from '../js/media.js';
+import {api} from '../js/api.js?v=f4753749f056';
+import {SITE_CONFIG} from '../js/site-config.js?v=f4753749f056';
+import {writeStorage,readStorage} from '../js/storage.js?v=f4753749f056';
+import {prepareImage} from '../js/media.js?v=f4753749f056';
 
 let frame=document.querySelector('#frame');
 const results=document.querySelector('#results'),prefix='nankosai-seiryo-v2:';

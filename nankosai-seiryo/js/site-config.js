@@ -1,6 +1,6 @@
 /** 文面と基本デザインの変更はこのファイルから。管理CMSは運営情報を扱います。 */
 export const SITE_CONFIG = {
-  version: '2.1.0',
+  version: '2.1.1',
   content: {
     festivalName: '南高祭', year: '2027', siteTitle: '南高祭 2027 | 清涼',
     theme: '清涼', englishName: 'NANKO FESTIVAL 2027', themeEnglish: 'SEIRYO',

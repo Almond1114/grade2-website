@@ -1,4 +1,4 @@
-import { SITE_CONFIG } from './site-config.js';
+import { SITE_CONFIG } from './site-config.js?v=f4753749f056';
 export const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
 export const uid = prefix => `${prefix}_${crypto.randomUUID()}`;
 export const asBool = value => value === true || value === 'true';

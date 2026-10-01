@@ -1,13 +1,13 @@
-import {SITE_CONFIG, applySiteConfig} from './site-config.js';
-import {api, getPublicWithFallback} from './api.js';
-import {favoriteIds, toggleFavorite, observeStorage, readStorage, writeStorage} from './storage.js';
-import {escapeHTML as e, japanNow, dateLabel, eventState, eventDates, crowdBadge, imageURL, asBool, toast, bindImageFallbacks} from './utils.js';
-import {projectSlots, projectSummary, favoriteSlots, overlappingSlots, matchesSearch} from './festival-data.js';
-import {renderHTML, scrollToSection} from './dom.js';
-import {icon} from './icons.js';
-import {projectCard, favoriteButton} from './cards.js';
-import {initializeAnimations, revealElements} from './animations.js';
-import {registerServiceWorker} from './pwa.js';
+import {SITE_CONFIG, applySiteConfig} from './site-config.js?v=f4753749f056';
+import {api, getPublicWithFallback} from './api.js?v=f4753749f056';
+import {favoriteIds, toggleFavorite, observeStorage, readStorage, writeStorage} from './storage.js?v=f4753749f056';
+import {escapeHTML as e, japanNow, dateLabel, eventState, eventDates, crowdBadge, imageURL, asBool, toast, bindImageFallbacks} from './utils.js?v=f4753749f056';
+import {projectSlots, projectSummary, favoriteSlots, overlappingSlots, matchesSearch} from './festival-data.js?v=f4753749f056';
+import {renderHTML, scrollToSection} from './dom.js?v=f4753749f056';
+import {icon} from './icons.js?v=f4753749f056';
+import {projectCard, favoriteButton} from './cards.js?v=f4753749f056';
+import {initializeAnimations, revealElements} from './animations.js?v=f4753749f056';
+import {registerServiceWorker} from './pwa.js?v=f4753749f056';
 
 const $ = selector => document.querySelector(selector);
 let data = null, selectedDate = '', selectedFloor = SITE_CONFIG.map.floors[0], selectedLocation = '';

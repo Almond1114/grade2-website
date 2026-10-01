@@ -1,7 +1,7 @@
-import {SITE_CONFIG} from './site-config.js';
-import {readStorage,writeStorage,removeStorage} from './storage.js';
-import {clone,uid,asBool} from './utils.js';
-import {validateRecord,validateSettings} from './schema.js';
+import {SITE_CONFIG} from './site-config.js?v=f4753749f056';
+import {readStorage,writeStorage,removeStorage} from './storage.js?v=f4753749f056';
+import {clone,uid,asBool} from './utils.js?v=f4753749f056';
+import {validateRecord,validateSettings} from './schema.js?v=f4753749f056';
 const COLLECTIONS = ['projects','news','schedule','locations'];
 export class ApiError extends Error {
   constructor(message,code='API_ERROR') {super(message);this.code=code;}
