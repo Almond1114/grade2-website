@@ -1,7 +1,7 @@
 (function(){
   window.GRADE2_CONFIG = window.GRADE2_CONFIG || {};
   window.GRADE2_CONFIG.DATA_CACHE_MAX_AGE = 60 * 1000;
-  window.GRADE2_CONFIG.APP_VERSION = "3.1.0-ten-themes";
+  window.GRADE2_CONFIG.APP_VERSION = "4.2.0-mobile";
 
   const key = "grade2Theme";
   const defaultTheme = "atelier";
@@ -54,15 +54,16 @@
   }
 
   function loadSiteAssets(){
-    loadCssOnce("responsive-ui.css?v=7", "responsive-ui");
-    loadCssOnce("mobile-editor-fix.css?v=6", "mobile-editor-fix");
-    loadCssOnce("brand-icon.css?v=5", "brand-icon");
-    loadCssOnce("stylish-ui.css?v=5", "stylish-ui");
-    loadCssOnce("exceptional-ui.css?v=3", "exceptional-ui");
-    loadCssOnce("live-system-ui.css?v=2", "live-system-ui");
-    loadCssOnce("theme-pack.css?v=1", "theme-pack");
-    loadScriptOnce("ux-enhancements.js?v=3", "ux-enhancements");
-    loadScriptOnce("live-system-ui.js?v=2", "live-system-ui");
+    loadCssOnce("responsive-ui.css?v=4.2.0-mobile", "responsive-ui");
+    loadCssOnce("mobile-editor-fix.css?v=4.2.0-mobile", "mobile-editor-fix");
+    loadCssOnce("brand-icon.css?v=4.2.0-mobile", "brand-icon");
+    loadCssOnce("stylish-ui.css?v=4.2.0-mobile", "stylish-ui");
+    loadCssOnce("exceptional-ui.css?v=4.2.0-mobile", "exceptional-ui");
+    loadCssOnce("live-system-ui.css?v=4.2.0-mobile", "live-system-ui");
+    loadCssOnce("theme-pack.css?v=4.2.0-mobile", "theme-pack");
+    loadCssOnce("mobile-ui.css?v=4.2.0-mobile", "mobile-ui");
+    loadScriptOnce("ux-enhancements.js?v=4.2.0-mobile", "ux-enhancements");
+    loadScriptOnce("live-system-ui.js?v=4.2.0-mobile", "live-system-ui");
   }
 
   function parseTimestamp(value) {
