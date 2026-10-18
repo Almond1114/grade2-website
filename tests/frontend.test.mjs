@@ -5,6 +5,92 @@ import vm from 'node:vm';
 import crypto from 'node:crypto';
 const source = name => fs.readFileSync(new URL('../' + name, import.meta.url), 'utf8');
 
+function clientFixture(timerOverrides = {}) {
+  const elements = Object.fromEntries(['unlockEditor', 'editorKey', 'editorAccessStatus'].map(id => [id, { value: '', disabled: false, listeners: {}, addEventListener(event, handler) { this.listeners[event] = handler; } }]));
+  const calls = [];
+  const handlers = {};
+  const events = [];
+  let ready;
+  let respond = async () => ({ ok: true, json: async () => ({ ok: true, apiVersion: 4, classId: '2-3' }) });
+  const context = vm.createContext({
+    console, crypto, setTimeout, clearTimeout, AbortController, ...timerOverrides,
+    CustomEvent: class { constructor(type) { this.type = type; } },
+    window: { GRADE2_CONFIG: { GAS_URL: 'https://script.google.com/macros/s/fixture/exec' }, dispatchEvent(event) { events.push(event.type); }, addEventListener(type, fn) { handlers[type] = fn; } },
+    document: { getElementById: id => elements[id], addEventListener(type, fn) { if (type === 'DOMContentLoaded') ready = fn; } },
+    fetch: async (url, options) => { calls.push({ url, options }); return respond(url, options); }
+  });
+  vm.runInContext(source('backend-client.js'), context);
+  ready();
+  return { api: context.window.grade2Backend, elements, calls, events, handlers, setResponder(fn) { respond = fn; }, async unlock() { elements.editorKey.value = 'fixture-editor-key-123456'; await elements.unlockEditor.listeners.click(); } };
+}
+
+test('verified editor button explicitly locks without resending an empty key', async () => {
+  const f = clientFixture();
+  await f.unlock();
+  assert.equal(f.api.isUnlocked(), true);
+  assert.equal(f.elements.editorKey.disabled, true);
+  assert.equal(f.elements.unlockEditor.textContent, '編集を終了する');
+  await f.elements.unlockEditor.listeners.click();
+  assert.equal(f.api.isUnlocked(), false);
+  assert.equal(f.elements.editorKey.disabled, false);
+  assert.equal(f.calls.length, 1);
+  assert.match(f.elements.editorAccessStatus.textContent, /編集を終了しました/);
+  await assert.rejects(f.api.request('add'), /編集キー/);
+});
+
+test('editor refuses successful responses from an incompatible API or another class', async () => {
+  for (const result of [{ ok: true, apiVersion: 3, classId: '2-3' }, { ok: true, apiVersion: 4, classId: '2-1' }]) {
+    const f = clientFixture();
+    f.setResponder(async () => ({ ok: true, json: async () => result }));
+    await f.unlock();
+    assert.equal(f.api.isUnlocked(), false);
+    assert.match(f.elements.editorAccessStatus.textContent, /2年3組版|新バージョン/);
+  }
+});
+
+test('request timeout remains active while reading the response body', async () => {
+  const timers = new Map();
+  let count = 0;
+  const f = clientFixture({ setTimeout(fn) { const id = ++count; timers.set(id, fn); return id; }, clearTimeout(id) { timers.delete(id); } });
+  await f.unlock();
+  f.setResponder(async () => ({ ok: true, json: async () => {
+    const timeout = Array.from(timers.values())[0];
+    assert.ok(timeout, 'response parsing must still have a timeout');
+    timeout();
+    throw Object.assign(new Error('body aborted'), { name: 'AbortError' });
+  } }));
+  await assert.rejects(f.api.request('uploadPhoto', { base64: 'fixture' }), /応答がありません/);
+  assert.equal(timers.size, 0);
+});
+
+test('leaving the page discards the key before a back-forward cache restore', async () => {
+  const f = clientFixture();
+  await f.unlock();
+  assert.equal(typeof f.handlers.pagehide, 'function');
+  f.handlers.pagehide();
+  assert.equal(f.api.isUnlocked(), false);
+  assert.ok(f.events.includes('grade2:editor-locked'));
+  await assert.rejects(f.api.request('uploadPhoto', {}), /編集キー/);
+  assert.equal(f.calls.length, 1);
+});
+
+test('a late verification response cannot unlock a page after navigation', async () => {
+  const f = clientFixture();
+  let finish;
+  let started;
+  const reading = new Promise(resolve => { started = resolve; });
+  f.setResponder(async () => ({ ok: true, json: () => new Promise(resolve => { finish = resolve; started(); }) }));
+  const verification = f.unlock();
+  await reading;
+  f.handlers.pagehide();
+  finish({ ok: true, apiVersion: 4, classId: '2-3' });
+  await verification;
+  assert.equal(f.api.isUnlocked(), false);
+  assert.equal(f.elements.editorKey.disabled, false);
+  assert.equal(f.elements.unlockEditor.textContent, '編集を有効にする');
+  assert.ok(!f.events.includes('grade2:editor-unlocked'));
+});
+
 test('Drive URLs preserve resource keys and use the preview viewer; unsafe URLs are rejected', () => {
   const context = vm.createContext({ URL, window: {}, document: { addEventListener() {} } });
   vm.runInContext(source('media-display.js'), context);
@@ -48,7 +134,7 @@ test('editor sends credentials and photos in POST bodies, preserves retry IDs, a
   const context = vm.createContext({
     console, crypto, setTimeout, clearTimeout, AbortController,
     CustomEvent: class {},
-    window: { GRADE2_CONFIG: { GAS_URL: 'https://script.google.com/macros/s/fixture/exec' }, dispatchEvent() {} },
+    window: { GRADE2_CONFIG: { GAS_URL: 'https://script.google.com/macros/s/fixture/exec' }, dispatchEvent() {}, addEventListener() {} },
     document: { getElementById: id => elements[id], addEventListener(event, handler) { if (event === 'DOMContentLoaded') ready = handler; } },
     fetch: async (url, options) => { calls.push({ url, options }); return { ok: true, json: async () => ({ ok: true, apiVersion: 4, classId: '2-3' }) }; },
     localStorage: { setItem() { throw new Error('Credentials must not be persisted'); } }
@@ -96,20 +182,22 @@ test('all root scripts and Apps Script sources parse, and linked local scripts/s
 test('PWA assets have unique existing paths and activation keeps caches for unrelated projects', async () => {
   const handlers = {};
   const removed = [];
+  let currentCache;
   const context = vm.createContext({
     console, URL,
     self: { location: { origin: 'https://example.com' }, addEventListener: (name, fn) => { handlers[name] = fn; }, clients: { claim() {} } },
-    caches: { keys: async () => ['grade2-site-old', 'grade2-site-v4-grade23-20261018', 'nankosai-offline-v1'], delete: async key => { removed.push(key); } },
+    caches: { keys: async () => ['grade2-site-old', 'grade2-site-v4-grade23-20261018', currentCache, 'nankosai-offline-v1'], delete: async key => { removed.push(key); } },
     importScripts: () => { throw new Error('Firebase unavailable in unit test'); }
   });
   // Firebase初期化の失敗を記録せず、キャッシュの独立した動作を検証する。
   context.console = { error() {}, warn() {} };
   vm.runInContext(source('firebase-messaging-sw.js'), context);
+  currentCache = vm.runInContext('SITE_CACHE', context);
   const assets = Array.from(vm.runInContext('SITE_ASSETS', context));
   assert.equal(new Set(assets).size, assets.length);
   for (const asset of assets) assert.ok(fs.existsSync(new URL('../' + asset.split('?')[0], import.meta.url)), `missing precache asset ${asset}`);
   let complete;
   handlers.activate({ waitUntil: promise => { complete = promise; } });
   await complete;
-  assert.deepEqual(removed, ['grade2-site-old']);
+  assert.deepEqual(removed, ['grade2-site-old', 'grade2-site-v4-grade23-20261018']);
 });

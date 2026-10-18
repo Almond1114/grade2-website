@@ -1,4 +1,4 @@
-const SITE_CACHE = "grade2-site-v4-grade23-20261018";
+const SITE_CACHE = "grade2-site-v4.0.1-grade23-20261019";
 const SITE_ASSETS = [
   "./",
   "./index.html",
@@ -24,9 +24,9 @@ const SITE_ASSETS = [
   "./app-config.js?v=4.0.0-grade23",
   "./app-core.js?v=4.0.0-grade23",
   "./editor-add.js?v=4.0.0-grade23",
-  "./backend-client.js?v=4.0.0-grade23",
+  "./backend-client.js?v=4.0.1-grade23",
   "./media-display.js?v=4.0.0-grade23",
-  "./media-editor.js?v=4.0.0-grade23",
+  "./media-editor.js?v=4.0.1-grade23",
   "./media.css?v=4.0.0-grade23",
   "./class-2-3.html",
   "./notifications-web.js?v=4.0.0-grade23",

@@ -1,7 +1,7 @@
 (function(){
   window.GRADE2_CONFIG = window.GRADE2_CONFIG || {};
   window.GRADE2_CONFIG.DATA_CACHE_MAX_AGE = 60 * 1000;
-  window.GRADE2_CONFIG.APP_VERSION = "4.0.0-grade23-photos";
+  window.GRADE2_CONFIG.APP_VERSION = "4.0.1-grade23-photos";
 
   const key = "grade2Theme";
   const defaultTheme = "atelier";

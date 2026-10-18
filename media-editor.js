@@ -1,5 +1,6 @@
 (function () {
   let working = false;
+  let refreshAccess = () => {};
   const escape = value => escapeHtml(String(value || ""));
   function setValue(input, value) {
     input.value = value;
@@ -58,6 +59,7 @@
     const updateAccess = () => {
       const access = window.grade2Backend.getStatus();
       find(".photo-share").hidden = !access?.allowPublicPhotos;
+      if (!access?.allowPublicPhotos) find(".photo-public").checked = false;
       status.textContent = !access ? "先に上部の編集キーを確認してください。" : !access.uploadEnabled ? "Drive保存先が未設定です。PHOTO_FOLDER_IDを設定してください。共有URLの直接入力は使えます。" : "写真を選べます。添付後、最後にお知らせを保存してください。";
     };
     function requireAccess() {
@@ -142,14 +144,11 @@
       status.textContent = "写真と引用元の投稿リンクを添付しました。内容を確認し、お知らせを保存してください。";
     };
     updateAccess();
+    refreshAccess = () => { if (panel.isConnected) updateAccess(); };
     updatePreview();
   }
   window.grade2PhotoEditor = { mount, isBusy: () => working };
-  window.addEventListener("grade2:editor-unlocked", () => {
-    const fields = document.getElementById("editFields");
-    if (fields?.querySelector(".photo-editor")) {
-      fields.querySelector(".photo-editor").remove();
-      mount(fields);
-    }
-  });
+  // 接続状態だけを変え、選択した写真や入力済みのURLは保持する。
+  window.addEventListener("grade2:editor-unlocked", () => refreshAccess());
+  window.addEventListener("grade2:editor-locked", () => refreshAccess());
 })();
