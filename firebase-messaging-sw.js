@@ -1,4 +1,4 @@
-const SITE_CACHE = "grade2-firebase-pwa-v7-ten-themes-20260716";
+const SITE_CACHE = "grade2-site-v4-grade23-20261018";
 const SITE_ASSETS = [
   "./",
   "./index.html",
@@ -10,21 +10,26 @@ const SITE_ASSETS = [
   "./edit.html",
   "./notifications.html",
   "./reset-cache.html",
-  "./style.css",
-  "./responsive-ui.css",
-  "./mobile-editor-fix.css",
-  "./brand-icon.css",
-  "./stylish-ui.css",
-  "./exceptional-ui.css",
-  "./live-system-ui.css",
-  "./theme-pack.css",
-  "./theme.js",
-  "./ux-enhancements.js",
-  "./live-system-ui.js",
-  "./app-config.js",
-  "./app-core.js",
-  "./editor-add.js",
-  "./notifications-web.js",
+  "./style.css?v=4.0.0-grade23",
+  "./responsive-ui.css?v=4.0.0-grade23",
+  "./mobile-editor-fix.css?v=4.0.0-grade23",
+  "./brand-icon.css?v=4.0.0-grade23",
+  "./stylish-ui.css?v=4.0.0-grade23",
+  "./exceptional-ui.css?v=4.0.0-grade23",
+  "./live-system-ui.css?v=4.0.0-grade23",
+  "./theme-pack.css?v=4.0.0-grade23",
+  "./theme.js?v=4.0.0-grade23",
+  "./ux-enhancements.js?v=4.0.0-grade23",
+  "./live-system-ui.js?v=4.0.0-grade23",
+  "./app-config.js?v=4.0.0-grade23",
+  "./app-core.js?v=4.0.0-grade23",
+  "./editor-add.js?v=4.0.0-grade23",
+  "./backend-client.js?v=4.0.0-grade23",
+  "./media-display.js?v=4.0.0-grade23",
+  "./media-editor.js?v=4.0.0-grade23",
+  "./media.css?v=4.0.0-grade23",
+  "./class-2-3.html",
+  "./notifications-web.js?v=4.0.0-grade23",
   "./mobile-notification-fix.js",
   "./manifest.webmanifest",
   "./icons/brand-icon.svg",
@@ -44,7 +49,7 @@ self.addEventListener("install", event => {
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(key => key !== SITE_CACHE).map(key => caches.delete(key))))
+      .then(keys => Promise.all(keys.filter(key => /^grade2[-_]/.test(key) && key !== SITE_CACHE).map(key => caches.delete(key))))
       .then(() => self.clients.claim())
   );
 });
@@ -63,7 +68,7 @@ self.addEventListener("fetch", event => {
         }
         return response;
       })
-      .catch(() => caches.match(event.request).then(cached => cached || caches.match("./index.html")))
+      .catch(() => caches.match(event.request).then(cached => cached || (event.request.mode === "navigate" ? caches.match("./index.html") : Response.error())))
   );
 });
 

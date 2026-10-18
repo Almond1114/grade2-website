@@ -1,0 +1,42 @@
+.notice-card:has(.notice-media){display:block}
+.notice-media{margin:0 0 18px;min-width:0;border:1px solid var(--line,#dbe3ee);border-radius:16px;overflow:hidden;background:var(--surface-strong,#f8fafc)}
+.notice-media iframe{display:block;width:100%;height:clamp(230px,50vw,430px);border:0;background:#f1f5f9}
+.notice-media img.notice-photo{display:block;width:100%;height:auto;max-height:520px;object-fit:contain;border-radius:0;margin:0}
+.notice-media figcaption{display:grid;gap:7px;padding:13px 16px;font-size:13px;line-height:1.6}
+.notice-media figcaption small{font-size:12px;color:var(--muted,#64748b)}
+.notice-media figcaption a,.classroom-photo-choice a{color:var(--accent,#2563eb);text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+.editor-access{display:grid;gap:14px;margin-bottom:22px}
+.editor-access h2{margin:0;font-size:21px}
+.editor-access p{margin:0;line-height:1.7}
+.editor-key-row{display:flex;align-items:end;gap:12px;flex-wrap:wrap}
+.editor-key-row label{display:grid;gap:8px;flex:1 1 230px;font-size:14px}
+.editor-key-row input{width:100%;min-width:0;padding:13px 14px;border:1px solid var(--border,#cbd5e1);border-radius:12px;background:var(--surface,#fff);color:inherit;font:inherit}
+.editor-key-row button{min-height:48px}
+.photo-editor{min-width:0;border:1px solid var(--border,#dbe3ee);border-radius:18px;padding:clamp(15px,3vw,24px);background:var(--surface,#f8fafc)}
+.photo-heading{display:flex;align-items:start;justify-content:space-between;gap:14px;margin-bottom:18px}
+.photo-heading h3{margin:6px 0;font-size:23px}
+.photo-editor p{font-size:13px;line-height:1.8;color:var(--muted,#64748b);margin:8px 0 14px}
+.photo-tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.photo-tabs button{flex:1;min-width:120px;min-height:46px;border-radius:12px;border:1px solid var(--border,#cbd5e1);background:transparent;color:inherit;padding:11px 13px;font:inherit;font-size:13px;cursor:pointer}
+.photo-tabs button[aria-selected=true]{background:var(--accent,#2563eb);color:#fff;border-color:transparent}
+.photo-editor label.photo-file-label{display:grid;gap:11px;padding:17px;border:1px dashed var(--border,#94a3b8);border-radius:12px;margin-bottom:12px}
+.photo-file-label input{width:100%;min-width:0;font-size:14px;padding:8px 0;border:0}
+.photo-file-label small{line-height:1.7;color:var(--muted,#64748b)}
+.photo-editor label.photo-share{display:flex;align-items:start;gap:9px;font-size:13px;line-height:1.7;margin:12px 0}
+.photo-editor .photo-share input{width:18px;height:18px;margin:4px 0;flex:none}
+.photo-editor [hidden]{display:none!important}
+.photo-editor .photo-status{padding:13px 15px;border-radius:12px;background:var(--accent-soft,#eff6ff);color:inherit;font-size:13px;margin-top:17px;overflow-wrap:anywhere}
+.photo-preview:empty{display:none}
+.class-label{padding:8px 12px;border-radius:999px;font-size:12px;font-weight:800;color:inherit;background:var(--accent-soft)}
+.photo-preview{margin-top:16px}
+.photo-classroom-controls{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.photo-classroom-controls label{display:grid;gap:8px;font-size:13px;min-width:0}
+.photo-classroom-controls select{max-width:100%;width:100%;font:inherit;padding:11px;border-radius:10px;border:1px solid var(--border,#cbd5e1);background:var(--surface,#fff);color:inherit}
+.classroom-photo-list{display:grid;gap:10px;margin:14px 0}
+.classroom-photo-choice{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;border:1px solid var(--border,#dbe3ee);border-radius:12px}
+.classroom-photo-choice>div{display:grid;gap:8px;min-width:0;font-size:13px;overflow-wrap:anywhere}
+.classroom-photo-choice small{color:var(--muted,#64748b);line-height:1.5}
+.classroom-photo-choice button{flex:none;font-size:12px;min-height:44px}
+.photo-editor button:disabled,.editor-access button:disabled{opacity:.6;cursor:wait}
+.photo-editor button:focus-visible,.editor-key-row input:focus-visible{outline:3px solid var(--accent,#2563eb);outline-offset:3px}
+@media(max-width:600px){.photo-heading{display:grid}.photo-heading .photo-remove{justify-self:start}.photo-classroom-controls{grid-template-columns:1fr}.classroom-photo-choice{align-items:start;flex-direction:column}.editor-key-row{align-items:stretch}.editor-key-row button{width:100%}.photo-upload{width:100%;white-space:normal}}

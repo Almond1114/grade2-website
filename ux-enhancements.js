@@ -4,8 +4,8 @@
   window.__grade2UxEnhancements = true;
 
   const links = [
-    ["ホーム","index.html","全体の状況を見る"],
-    ["クラス","classes.html","クラス別ページ"],
+    ["ホーム","index.html","2年3組の状況を見る"],
+    ["2年3組","class-2-3.html","時間割と明日の準備"],
     ["テスト予定","tests.html","直近のテスト"],
     ["提出物","homework.html","締切を確認"],
     ["お知らせ","announcements.html","最新の連絡"],

@@ -5,7 +5,8 @@ const GAS_URL = String(APP_CONFIG.GAS_URL || "").trim();
 const SHEET_URL = String(APP_CONFIG.SHEET_URL || "").trim();
 const AI_ENDPOINT = String(APP_CONFIG.AI_ENDPOINT || "").trim();
 const SITE_TITLE = String(APP_CONFIG.SITE_TITLE || "2Base").trim();
-const SITE_SUBTITLE = String(APP_CONFIG.SITE_SUBTITLE || "2学年総合web").trim();
+const SITE_SUBTITLE = String(APP_CONFIG.SITE_SUBTITLE || "2年3組専用web").trim();
+const CLASS_ID = "2-3";
 const SITE_MARK = String(APP_CONFIG.SITE_MARK || "2").trim();
 const DATA_CACHE_MAX_AGE = Number(APP_CONFIG.DATA_CACHE_MAX_AGE || 10 * 60 * 1000);
 
@@ -15,9 +16,6 @@ const SAMPLE_DATA = {
     { __rowNumber: "3", 表示: "TRUE", 日付: "2026-07-08", カテゴリ: "行事", クラス: "全体", タイトル: "学年集会", 本文: "朝の会後に体育館へ移動します。", 画像URL: "", リンクURL: "" }
   ],
   timetable: [
-    { __rowNumber: "2", クラス: "2-1", 曜日: "月", "1時間目": "国語", "2時間目": "数学", "3時間目": "英語", "4時間目": "理科", "5時間目": "体育", "6時間目": "総合", 持ち物メモ: "体育着" },
-    { __rowNumber: "3", クラス: "2-1", 曜日: "火", "1時間目": "社会", "2時間目": "英語", "3時間目": "数学", "4時間目": "美術", "5時間目": "国語", "6時間目": "道徳", 持ち物メモ: "美術セット" },
-    { __rowNumber: "4", クラス: "2-2", 曜日: "月", "1時間目": "数学", "2時間目": "英語", "3時間目": "国語", "4時間目": "体育", "5時間目": "社会", "6時間目": "総合", 持ち物メモ: "体育着" },
     { __rowNumber: "5", クラス: "2-3", 曜日: "月", "1時間目": "英語", "2時間目": "数学", "3時間目": "理科", "4時間目": "国語", "5時間目": "体育", "6時間目": "総合", 持ち物メモ: "体育着・水筒" },
     { __rowNumber: "6", クラス: "2-3", 曜日: "火", "1時間目": "国語", "2時間目": "社会", "3時間目": "数学", "4時間目": "美術", "5時間目": "英語", "6時間目": "道徳", 持ち物メモ: "美術セット" },
     { __rowNumber: "7", クラス: "2-3", 曜日: "水", "1時間目": "数学", "2時間目": "体育", "3時間目": "理科", "4時間目": "技術", "5時間目": "社会", "6時間目": "学活", 持ち物メモ: "技術ファイル" },
@@ -87,10 +85,10 @@ const EDIT_TYPE_ORDER = ["announcements", "timetable", "homework", "tests", "ite
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 const SCHOOL_DAYS = ["月", "火", "水", "木", "金"];
 const PERIODS = ["1時間目", "2時間目", "3時間目", "4時間目", "5時間目", "6時間目"];
-const DEFAULT_CLASSES = ["2-1", "2-2", "2-3", "2-4", "2-5"];
+const DEFAULT_CLASSES = [CLASS_ID];
 
-let appData = cloneData(SAMPLE_DATA);
-let selectedClass = localStorage.getItem("grade2SelectedClass") || APP_CONFIG.DEFAULT_CLASS || "2-3";
+let appData = scopeClassData(SAMPLE_DATA);
+let selectedClass = CLASS_ID;
 let dataMode = "loading";
 let selectedEditType = "announcements";
 let selectedRowNumber = "";
@@ -123,13 +121,25 @@ function applySiteIdentity() {
 
 
 function cloneData(data) { return JSON.parse(JSON.stringify(data)); }
+function scopeClassData(data) {
+  const scoped = cloneData(data);
+  Object.keys(EDIT_FIELDS).forEach(type => {
+    scoped[type] = (scoped[type] || []).filter(row => {
+      if (!("クラス" in row)) return true;
+      const value = text(row.クラス);
+      return value === CLASS_ID || (type !== "timetable" && (!value || value === "全体"));
+    });
+  });
+  scoped.editLog = [];
+  return scoped;
+}
 function clear(node) { if (node) node.innerHTML = ""; }
 function text(value) { return String(value ?? "").trim(); }
 function isTrue(value) { return !["FALSE", "false", "0", "非表示"].includes(text(value)); }
 function isVisible(row) { return isTrue(row.表示 || "TRUE"); }
 function classMatch(row, className = selectedClass) {
   const rowClass = text(row.クラス || "全体");
-  return rowClass === "" || rowClass === "全体" || rowClass === className;
+  return rowClass === "全体" || rowClass === CLASS_ID;
 }
 function escapeHtml(str) {
   return text(str).replace(/[&<>'"]/g, (c) => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", "'":"&#39;", '"':"&quot;" }[c]));
@@ -194,20 +204,14 @@ function upcomingRows(type, key, className = selectedClass) {
   }), key);
 }
 function getClasses() {
-  const classes = new Set(DEFAULT_CLASSES);
-  (appData.timetable || []).forEach(row => {
-    const cls = text(row.クラス);
-    if (/^2-\d+/.test(cls)) classes.add(cls);
-  });
-  return [...classes].sort((a,b) => a.localeCompare(b, "ja"));
+  return [CLASS_ID];
 }
 function getCurrentPageClass() {
-  const fromBody = document.body?.dataset?.class || "";
-  return fromBody || selectedClass;
+  return CLASS_ID;
 }
 function setSelectedClass(className, options = {}) {
-  selectedClass = className || selectedClass;
-  localStorage.setItem("grade2SelectedClass", selectedClass);
+  selectedClass = CLASS_ID;
+  try { localStorage.setItem("grade2SelectedClass", selectedClass); } catch (_) {}
   window.dispatchEvent(new CustomEvent("grade2:class-changed", { detail: { selectedClass }}));
   if (!options.noRender) renderAll();
 }
@@ -229,7 +233,7 @@ function dataCacheKey() {
   const base = GAS_URL || "sample";
   let hash = 0;
   for (let i = 0; i < base.length; i++) hash = ((hash << 5) - hash + base.charCodeAt(i)) | 0;
-  return "grade2DataCache:" + Math.abs(hash);
+  return "grade23DataCache:v4:" + Math.abs(hash);
 }
 function readLocalDataCache() {
   try {
@@ -265,7 +269,7 @@ function clearLocalDataCache() {
 async function loadData() {
   renderConnection("loading");
   if (!GAS_URL) {
-    appData = cloneData(SAMPLE_DATA);
+    appData = scopeClassData(SAMPLE_DATA);
     dataMode = "sample";
     renderAll();
     renderConnection("sample");
@@ -274,7 +278,7 @@ async function loadData() {
 
   const cached = readLocalDataCache();
   if (cached?.data) {
-    appData = cached.data;
+    appData = scopeClassData(cached.data);
     dataMode = "cached";
     renderAll();
     renderConnection("cached", cached.savedAt);
@@ -284,7 +288,7 @@ async function loadData() {
   try {
     const res = await jsonp(`${GAS_URL}?action=data`);
     if (!res?.ok) throw new Error(res?.error || "データ取得エラー");
-    appData = res.data || cloneData(SAMPLE_DATA);
+    appData = scopeClassData(res.data || SAMPLE_DATA);
     saveLocalDataCache(appData);
     dataMode = "live";
     renderAll();
@@ -297,7 +301,11 @@ async function loadData() {
       renderConnection("cached-error", cached.savedAt);
       return;
     }
-    appData = cloneData(SAMPLE_DATA);
+    if (dataMode === "live" && appData) {
+      renderConnection("cached-error", Date.now());
+      return;
+    }
+    appData = scopeClassData(SAMPLE_DATA);
     dataMode = "sample";
     renderAll();
     renderConnection("sample", error.message);
@@ -413,14 +421,17 @@ function renderHome() {
 function noticeCard(row) {
   const img = safeUrl(row.画像URL);
   const link = safeUrl(row.リンクURL);
-  const html = `<article class="content-card notice-card">${img ? `<img src="${escapeHtml(img)}" alt="" loading="lazy">` : ""}<div><span class="mini-label">${escapeHtml(row.カテゴリ || "連絡")} / ${escapeHtml(row.クラス || "全体")}</span><h3>${escapeHtml(row.タイトル)}</h3><p>${escapeHtml(row.本文)}</p><small>${dateLabel(row.日付)}</small>${link ? `<a class="text-link" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">リンクを開く</a>` : ""}</div></article>`;
+  const media = img && window.grade2Media ? window.grade2Media.markup(img, row.タイトル || "お知らせの写真") : "";
+  let isClassroom = false;
+  try { isClassroom = new URL(link).hostname === "classroom.google.com"; } catch (_) {}
+  const html = `<article class="content-card notice-card">${media}<div><span class="mini-label">${escapeHtml(row.カテゴリ || "連絡")} / ${escapeHtml(row.クラス || CLASS_ID)}</span><h3>${escapeHtml(row.タイトル)}</h3><p>${escapeHtml(row.本文)}</p><small>${dateLabel(row.日付)}</small>${link ? `<a class="text-link" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">${isClassroom ? "引用元：Classroomの投稿を開く" : "リンクを開く"}</a>` : ""}</div></article>`;
   return html;
 }
 function renderClassPage() {
   if (!document.body.matches('[data-page="class"]')) return;
   const cls = getCurrentPageClass();
   selectedClass = cls;
-  localStorage.setItem("grade2SelectedClass", cls);
+  try { localStorage.setItem("grade2SelectedClass", cls); } catch (_) {}
   document.querySelectorAll("[data-class-name]").forEach(el => el.textContent = cls);
   const t = nextTest(cls);
   const h = nextHomework(cls);
@@ -504,7 +515,7 @@ function renderEditor() {
   renderEditLog();
 }
 function rowsForEdit() {
-  const rows = appData[selectedEditType] || [];
+  const rows = (appData[selectedEditType] || []).filter(row => classMatch(row));
   const q = text($("editSearch")?.value).toLowerCase();
   if (!q) return rows;
   return rows.filter(row => Object.values(row).some(v => text(v).toLowerCase().includes(q)));
@@ -575,10 +586,10 @@ function renderEditForm() {
 function fieldHelpText(name, type) {
   const helps = {
     表示: "TRUEで表示、FALSEで非表示",
-    クラス: "全体 / 2-1 / 2-2 など",
+    クラス: "保存先は2年3組に固定されています",
     日付: "できれば 2026-07-10 の形",
     締切: "できれば 2026-07-10 の形",
-    画像URL: "https:// から始まる画像URLだけ表示",
+    画像URL: "下の写真パネルから添付できます。Driveの共有URLも使えます",
     リンクURL: "https:// から始まるURLだけ表示",
     URL: "https:// から始まるURL",
     曜日: "時間割はクラス＋曜日で1行"
@@ -608,7 +619,7 @@ async function submitEdit(event) {
 function renderEditLog() {
   const box = $("editLogList"); if (!box) return;
   const rows = appData.editLog || [];
-  box.innerHTML = rows.length ? rows.slice(0,12).map(r => `<article class="log-item"><strong>${escapeHtml(r.種類)} / ${escapeHtml(r.行)}行</strong><p>${escapeHtml(r.内容)}</p><small>${escapeHtml(r.日時)}</small></article>`).join("") : emptyState("編集履歴はまだありません。");
+  box.innerHTML = rows.length ? rows.slice(0,12).map(r => `<article class="log-item"><strong>${escapeHtml(r.種類)} / ${escapeHtml(r.行)}行</strong><p>${escapeHtml(r.内容)}</p><small>${escapeHtml(r.日時)}</small></article>`).join("") : emptyState("編集履歴はスプレッドシートの「編集ログ」で確認できます。");
 }
 function copyPrep() {
   const summary = getTomorrowInfo(selectedClass);
@@ -678,6 +689,7 @@ window.grade2App = {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
+  setSelectedClass(CLASS_ID, { noRender: true });
   applySiteIdentity();
   initEvents();
   initPwaInstall();

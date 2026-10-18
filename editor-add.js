@@ -1,252 +1,141 @@
-// 2Base editor add/update UI layer v2
-// 上段を「追加」、下段を「既存行編集」に分けます。スマホのタップにも強めに対応。
+// 2Base 2年3組版の追加・編集画面。
 (function () {
-  if (window.__grade2EditorAddLayerV2) return;
-  window.__grade2EditorAddLayerV2 = true;
-
-  function currentMode() {
-    return selectedRowNumber === "__new__" ? "add" : "update";
-  }
-
-  function setHiddenMode(mode) {
-    const input = $("editMode");
-    if (input) input.value = mode;
-    document.body.dataset.editorMode = mode;
-  }
-
+  let saving = false;
+  let dirty = false;
+  let renderedKey = "";
+  const mode = () => selectedRowNumber === "__new__" ? "add" : "update";
+  const busy = () => saving || !!window.grade2PhotoEditor?.isBusy();
   function blankRow(type) {
     const row = { __rowNumber: "" };
     (EDIT_FIELDS[type] || []).forEach(([name]) => { row[name] = ""; });
-
-    if (Object.prototype.hasOwnProperty.call(row, "表示")) row.表示 = "TRUE";
-    if (Object.prototype.hasOwnProperty.call(row, "クラス")) row.クラス = selectedClass || "全体";
-
-    const today = dateKey(new Date());
-    if (type === "announcements") {
-      row.日付 = today;
-      row.カテゴリ = "連絡";
-      row.クラス = "全体";
-    }
-    if (type === "timetable") {
-      row.クラス = selectedClass || "2-3";
-      row.曜日 = "月";
-    }
-    if (type === "tests") {
-      row.日付 = today;
-      row.クラス = "全体";
-    }
-    if (type === "homework") {
-      row.締切 = today;
-      row.クラス = "全体";
-    }
-    if (type === "items") {
-      row.クラス = "全体";
-    }
-    if (type === "links") {
-      row.カテゴリ = "学習";
-    }
+    if ("表示" in row) row.表示 = "TRUE";
+    if ("クラス" in row) row.クラス = CLASS_ID;
+    if ("日付" in row && type !== "items") row.日付 = dateKey(new Date());
+    if (type === "announcements") row.カテゴリ = "連絡";
+    if (type === "timetable") row.曜日 = "月";
+    if (type === "homework") row.締切 = dateKey(new Date());
+    if (type === "links") row.カテゴリ = "学習";
     return row;
   }
-
-  function scrollToForm() {
-    const target = $("editForm")?.closest(".editor-card") || $("editForm");
-    if (!target) return;
-    requestAnimationFrame(() => {
-      target.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-  }
-
-  function setAddMode(type) {
-    selectedEditType = type || selectedEditType;
-    selectedRowNumber = "__new__";
-    setHiddenMode("add");
+  function choose(type, rowNumber) {
+    if (busy()) return;
+    selectedEditType = type;
+    selectedRowNumber = rowNumber;
+    dirty = false;
+    renderedKey = "";
     renderEditor();
-    scrollToForm();
+    $("editForm")?.closest(".editor-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
-
-  function setUpdateMode(type, rowNumber) {
-    selectedEditType = type || selectedEditType;
-    selectedRowNumber = rowNumber || "";
-    setHiddenMode("update");
-    renderEditor();
-    if (rowNumber) scrollToForm();
-  }
-
   selectedEditRow = function () {
-    if (currentMode() === "add") return blankRow(selectedEditType);
-    return (appData[selectedEditType] || []).find(r => r.__rowNumber === selectedRowNumber) || null;
+    return mode() === "add" ? blankRow(selectedEditType) : (appData[selectedEditType] || []).find(row => row.__rowNumber === selectedRowNumber) || null;
   };
-
   renderEditor = function () {
     if (!document.body.matches('[data-page="edit"]')) return;
     renderEditTypeCards();
-    renderEditTypeSelect();
+    const select = $("editTypeSelect");
+    select.innerHTML = EDIT_TYPE_ORDER.map(type => `<option value="${type}" ${type === selectedEditType ? "selected" : ""}>${escapeHtml(TYPE_LABELS[type])}</option>`).join("");
     renderEditRowList();
     renderEditForm();
     renderEditLog();
   };
-
   renderEditTypeCards = function () {
     const box = $("editTypeCards");
     if (!box) return;
     box.innerHTML = EDIT_TYPE_ORDER.map(type => {
-      const meta = EDIT_TYPE_META[type] || { icon: "✏️", short: "追加", hint: "新しい内容を追加" };
-      const active = currentMode() === "add" && type === selectedEditType;
-      return `<button class="edit-type-card editor-menu-card ${active ? "active" : ""}" data-add-type="${type}" type="button" aria-label="${escapeHtml(TYPE_LABELS[type])}を追加">
-        <span class="edit-type-icon">${meta.icon}</span>
-        <span class="edit-type-copy"><strong>${escapeHtml(TYPE_LABELS[type])}を追加</strong><span>${escapeHtml(meta.short)}</span><small>新しい行としてスプレッドシートに追加</small><b class="mobile-add-btn">タップして追加フォームを開く</b></span>
-        <em>追加</em>
-      </button>`;
+      const meta = EDIT_TYPE_META[type];
+      return `<button class="edit-type-card editor-menu-card ${mode() === "add" && type === selectedEditType ? "active" : ""}" data-add-type="${type}" type="button"><span class="edit-type-icon">${meta.icon}</span><span class="edit-type-copy"><strong>${escapeHtml(TYPE_LABELS[type])}を追加</strong><span>${escapeHtml(meta.short)}</span><small>2年3組の新しい内容を登録</small><b class="mobile-add-btn">タップして追加フォームを開く</b></span><em>追加</em></button>`;
     }).join("");
-
-    const openAdd = (event) => {
-      const btn = event.target.closest("[data-add-type]");
-      if (!btn || !box.contains(btn)) return;
-      event.preventDefault();
-      setAddMode(btn.dataset.addType);
+    // clickだけでタッチとマウスに対応。touchendの二重発火で入力を消さない。
+    box.onclick = event => {
+      const button = event.target.closest("[data-add-type]");
+      if (button) choose(button.dataset.addType, "__new__");
     };
-    box.onclick = openAdd;
-    box.ontouchend = openAdd;
   };
-
-  function renderEditTypeSelect() {
-    const select = $("editTypeSelect");
-    if (!select) return;
-    select.innerHTML = EDIT_TYPE_ORDER.map(type => `<option value="${type}" ${type === selectedEditType ? "selected" : ""}>${escapeHtml(TYPE_LABELS[type])}</option>`).join("");
-    select.onchange = () => setUpdateMode(select.value, "");
-  }
-
   renderEditRowList = function () {
     const list = $("editRowList");
     if (!list) return;
     const rows = rowsForEdit();
-    if (!rows.length) {
-      list.innerHTML = emptyState(`${TYPE_LABELS[selectedEditType] || "この種類"}の行が見つかりません。検索条件を変えてください。`);
-      return;
-    }
-    list.innerHTML = rows.map(row => {
-      const sub = selectedEditType === "timetable"
-        ? `${row["1時間目"] || ""} ${row["2時間目"] || ""} ${row["3時間目"] || ""}`
-        : (row.本文 || row.内容 || row.範囲 || row.持ち物 || row.説明 || row.メモ || "");
-      const cls = row.クラス ? ` / ${row.クラス}` : "";
-      const active = currentMode() === "update" && row.__rowNumber === selectedRowNumber;
-      return `<button type="button" class="edit-row ${active ? "active" : ""}" data-row="${escapeHtml(row.__rowNumber)}">
-        <span>${escapeHtml(rowTitle(selectedEditType, row))}</span>
-        <small>${escapeHtml(TYPE_LABELS[selectedEditType])}${escapeHtml(cls)} / シート ${escapeHtml(row.__rowNumber)} 行目</small>
-        ${sub ? `<p>${escapeHtml(sub).slice(0, 90)}</p>` : ""}
-      </button>`;
-    }).join("");
-
-    const openRow = (event) => {
-      const btn = event.target.closest("[data-row]");
-      if (!btn || !list.contains(btn)) return;
-      event.preventDefault();
-      setUpdateMode(selectedEditType, btn.dataset.row);
+    list.innerHTML = rows.length ? rows.map(row => {
+      const summary = selectedEditType === "timetable" ? PERIODS.slice(0, 3).map(period => row[period]).filter(Boolean).join("・") : row.本文 || row.内容 || row.範囲 || row.持ち物 || row.説明 || row.メモ || "";
+      return `<button type="button" class="edit-row ${row.__rowNumber === selectedRowNumber ? "active" : ""}" data-row="${escapeHtml(row.__rowNumber)}"><span>${escapeHtml(rowTitle(selectedEditType, row))}</span><small>${escapeHtml(TYPE_LABELS[selectedEditType])} / ${escapeHtml(row.クラス || CLASS_ID)}</small>${summary ? `<p>${escapeHtml(String(summary).slice(0, 90))}</p>` : ""}</button>`;
+    }).join("") : emptyState("まだ内容がないか、検索条件に一致しません。上のカードから追加できます。");
+    list.onclick = event => {
+      const button = event.target.closest("[data-row]");
+      if (button) choose(selectedEditType, button.dataset.row);
     };
-    list.onclick = openRow;
-    list.ontouchend = openRow;
   };
-
   function buildFields(row) {
     return EDIT_FIELDS[selectedEditType].map(([name, type, choices]) => {
-      const value = row[name] || "";
+      const value = name === "クラス" ? CLASS_ID : row[name] || "";
       const help = fieldHelpText(name, selectedEditType);
-      if (type === "select") {
-        return `<label><span>${escapeHtml(name)}</span><select name="${escapeHtml(name)}">${choices.map(c => `<option value="${escapeHtml(c)}" ${c === value ? "selected" : ""}>${escapeHtml(c)}</option>`).join("")}</select>${help}</label>`;
-      }
-      if (type === "textarea") {
-        return `<label class="wide"><span>${escapeHtml(name)}</span><textarea name="${escapeHtml(name)}" rows="4">${escapeHtml(value)}</textarea>${help}</label>`;
-      }
-      return `<label><span>${escapeHtml(name)}</span><input type="${type}" name="${escapeHtml(name)}" value="${escapeHtml(value)}">${help}</label>`;
+      const label = `<span>${escapeHtml(name)}</span>`;
+      if (type === "select") return `<label>${label}<select name="${escapeHtml(name)}">${choices.map(choice => `<option value="${escapeHtml(choice)}" ${choice === value ? "selected" : ""}>${escapeHtml(choice)}</option>`).join("")}</select>${help}</label>`;
+      if (type === "textarea") return `<label class="wide">${label}<textarea name="${escapeHtml(name)}" rows="4">${escapeHtml(value)}</textarea>${help}</label>`;
+      return `<label>${label}<input type="${type}" name="${escapeHtml(name)}" value="${escapeHtml(value)}" ${name === "クラス" ? "readonly" : ""}>${help}</label>`;
     }).join("");
   }
-
-  renderEditForm = function () {
+  renderEditForm = function (force = false) {
     const form = $("editForm");
-    const fieldsBox = $("editFields");
-    const title = $("editFormTitle");
-    if (!form || !fieldsBox) return;
-
-    const mode = currentMode();
-    setHiddenMode(mode);
-    const meta = EDIT_TYPE_META[selectedEditType] || {};
-
-    if (mode === "add") {
-      const row = blankRow(selectedEditType);
-      if (title) title.textContent = `新しく追加：${TYPE_LABELS[selectedEditType]}`;
-      const preview = `<div class="edit-current-preview wide add-preview"><span>${meta.icon || "＋"} 新規追加</span><strong>${escapeHtml(TYPE_LABELS[selectedEditType])}を追加</strong><small>保存するとスプレッドシートに新しい行が増えます。</small></div>`;
-      fieldsBox.innerHTML = preview + buildFields(row);
-      const status = $("formStatus");
-      if (status) status.textContent = "入力して保存すると、新しい行として追加されます。";
-      return;
-    }
-
-    const row = (appData[selectedEditType] || []).find(r => r.__rowNumber === selectedRowNumber) || null;
+    const fields = $("editFields");
+    if (!form || !fields || busy()) return;
+    const key = selectedEditType + ":" + selectedRowNumber;
+    if (!force && key === renderedKey && dirty) return;
+    renderedKey = key;
+    dirty = false;
+    const row = selectedEditRow();
+    $("editMode").value = mode();
+    document.body.dataset.editorMode = mode();
     if (!row) {
-      if (title) title.textContent = "追加するカード、または編集する行を選んでください";
-      fieldsBox.innerHTML = emptyState("上のカードを押すと新規追加フォームが開きます。既存の内容を直す場合は、下の一覧から選びます。 ");
-      const status = $("formStatus");
-      if (status) status.textContent = "スマホでは、上の追加カードをタップするとこの場所にフォームが出ます。";
+      $("editFormTitle").textContent = "追加するカード、または編集する内容を選んでください";
+      fields.innerHTML = emptyState("写真を載せるときは「お知らせを追加」を選んでください。");
+      $("formStatus").textContent = "上のカードから追加、一覧から編集できます。";
       return;
     }
-
-    if (title) title.textContent = rowTitle(selectedEditType, row);
-    const preview = `<div class="edit-current-preview wide"><span>${meta.icon || "✏️"} ${escapeHtml(TYPE_LABELS[selectedEditType])}を編集中</span><strong>${escapeHtml(rowTitle(selectedEditType, row))}</strong><small>保存先：スプレッドシート ${escapeHtml(row.__rowNumber)} 行目</small></div>`;
-    fieldsBox.innerHTML = preview + buildFields(row);
+    $("editFormTitle").textContent = mode() === "add" ? `新しく追加：${TYPE_LABELS[selectedEditType]}` : rowTitle(selectedEditType, row);
+    fields.innerHTML = `<div class="edit-current-preview wide"><span>${EDIT_TYPE_META[selectedEditType].icon} ${mode() === "add" ? "新規追加" : "編集中"}</span><strong>2年3組 / ${escapeHtml(TYPE_LABELS[selectedEditType])}</strong><small>${mode() === "add" ? "保存するとサイトに新しく追加されます。" : "内容を直したら保存してください。"}</small></div>` + buildFields(row);
+    if (selectedEditType === "announcements") window.grade2PhotoEditor?.mount(fields);
+    $("formStatus").textContent = "内容を入力して保存してください。写真の添付後も最後に保存が必要です。";
   };
-
   submitEdit = async function (event) {
     event.preventDefault();
+    if (busy()) return;
     const status = $("formStatus");
-    if (!GAS_URL) {
-      if (status) status.textContent = "GAS_URLが未設定なので保存できません。";
+    if (!selectedEditRow()) { status.textContent = "追加または編集する内容を選んでください。"; return; }
+    if (!window.grade2Backend?.isUnlocked()) {
+      status.textContent = "先に上部の編集キーを入力して、編集を有効にしてください。";
+      $("editorKey")?.focus();
       return;
     }
-
-    const mode = currentMode();
-    const formData = new FormData(event.currentTarget);
-    const params = new URLSearchParams({ action: mode === "add" ? "add" : "update", type: selectedEditType });
-
-    if (mode === "update") {
-      const row = selectedEditRow();
-      if (!row) {
-        if (status) status.textContent = "編集する行を選んでください。";
-        return;
-      }
-      params.set("rowNumber", row.__rowNumber);
-    }
-
-    for (const [key, value] of formData.entries()) params.set(key, value);
-    if (status) status.textContent = mode === "add" ? "追加中..." : "保存中...";
-
+    const action = mode() === "add" ? "add" : "update";
+    const payload = { ...Object.fromEntries(new FormData(event.currentTarget)), type: selectedEditType };
+    if (action === "update") payload.rowNumber = selectedRowNumber;
+    const submit = event.currentTarget.querySelector('[type="submit"]');
+    saving = true;
+    submit.disabled = true;
+    status.textContent = "保存中…";
     try {
-      const res = await jsonp(`${GAS_URL}?${params.toString()}&_=${Date.now()}`);
-      if (!res?.ok) throw new Error(res?.error || (mode === "add" ? "追加エラー" : "保存エラー"));
-      if (status) status.textContent = `${mode === "add" ? "追加" : "保存"}しました。${res.push ? `通知: 成功${res.push.sent || 0} 失敗${res.push.failed || 0}` : ""}`;
+      const result = await window.grade2Backend.request(action, payload);
+      dirty = false;
+      renderedKey = "";
+      window.grade2Backend.forgetRequests();
+      selectedRowNumber = String(result.rowNumber);
       clearLocalDataCache();
-      selectedRowNumber = res.rowNumber ? String(res.rowNumber) : "";
       await loadData();
-      setHiddenMode("update");
-    } catch (error) {
-      const msg = String(error.message || "");
-      if (status) {
-        status.textContent = msg.includes("不明なaction")
-          ? "追加できませんでした: Apps Scriptを新バージョンで再デプロイしてください。"
-          : `${mode === "add" ? "追加" : "保存"}できませんでした: ${msg}`;
-      }
-    }
+      saving = false;
+      renderEditForm(true);
+      status.textContent = "保存しました。お知らせページから表示を確認できます。";
+      toast("保存しました");
+    } catch (error) { status.textContent = `保存できませんでした: ${error.message}`; }
+    finally { saving = false; submit.disabled = false; }
   };
-
   initEvents = function () {
     $("reloadBtn")?.addEventListener("click", loadData);
     $("copyPrepBtn")?.addEventListener("click", copyPrep);
-    $("editSearch")?.addEventListener("input", () => {
-      if (currentMode() !== "add") selectedRowNumber = "";
-      renderEditRowList();
-      renderEditForm();
-    });
-    $("editTypeSelect")?.addEventListener("change", (event) => setUpdateMode(event.currentTarget.value, ""));
+    $("editTypeSelect")?.addEventListener("change", event => choose(event.target.value, ""));
+    $("editSearch")?.addEventListener("input", renderEditRowList);
+    $("editForm")?.addEventListener("input", () => { dirty = true; });
+    $("editForm")?.addEventListener("change", () => { dirty = true; });
     $("editForm")?.addEventListener("submit", submitEdit);
-    $("resetEditorBtn")?.addEventListener("click", () => renderEditForm());
+    $("resetEditorBtn")?.addEventListener("click", () => renderEditForm(true));
   };
 })();
