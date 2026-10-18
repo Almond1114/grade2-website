@@ -3,8 +3,17 @@
   let saving = false;
   let dirty = false;
   let renderedKey = "";
+  const drafts = new Map();
+  const savedRows = new Map();
+  const currentKey = () => selectedEditType + ":" + selectedRowNumber;
   const mode = () => selectedRowNumber === "__new__" ? "add" : "update";
   const busy = () => saving || !!window.grade2PhotoEditor?.isBusy();
+  function rememberDraft() {
+    if (saving || !renderedKey || renderedKey !== currentKey() || !selectedEditRow()) return;
+    const photo = window.grade2PhotoEditor?.snapshot();
+    if (!dirty && !photo?.file) return;
+    drafts.set(renderedKey, { values: Object.fromEntries(new FormData($("editForm"))), photo });
+  }
   function blankRow(type) {
     const row = { __rowNumber: "" };
     (EDIT_FIELDS[type] || []).forEach(([name]) => { row[name] = ""; });
@@ -18,7 +27,8 @@
     return row;
   }
   function choose(type, rowNumber) {
-    if (busy()) return;
+    if (busy()) { if ($("editTypeSelect")) $("editTypeSelect").value = selectedEditType; return; }
+    rememberDraft();
     selectedEditType = type;
     selectedRowNumber = rowNumber;
     dirty = false;
@@ -27,7 +37,7 @@
     $("editForm")?.closest(".editor-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
   selectedEditRow = function () {
-    return mode() === "add" ? blankRow(selectedEditType) : (appData[selectedEditType] || []).find(row => row.__rowNumber === selectedRowNumber) || null;
+    return mode() === "add" ? blankRow(selectedEditType) : savedRows.get(currentKey()) || (appData[selectedEditType] || []).find(row => row.__rowNumber === selectedRowNumber) || null;
   };
   renderEditor = function () {
     if (!document.body.matches('[data-page="edit"]')) return;
@@ -81,20 +91,23 @@
     const key = selectedEditType + ":" + selectedRowNumber;
     if (!force && key === renderedKey && dirty) return;
     renderedKey = key;
-    dirty = false;
+    const draft = drafts.get(key);
+    dirty = !!draft;
     const row = selectedEditRow();
     $("editMode").value = mode();
     document.body.dataset.editorMode = mode();
     if (!row) {
+      window.grade2PhotoEditor?.dispose();
       $("editFormTitle").textContent = "追加するカード、または編集する内容を選んでください";
-      fields.innerHTML = emptyState("写真を載せるときは「お知らせを追加」を選んでください。");
+      fields.innerHTML = emptyState("写真の連絡は「お知らせを追加」、Classroomの時間割は「時間割の写真を追加」を選んでください。");
       $("formStatus").textContent = "上のカードから追加、一覧から編集できます。";
       return;
     }
     $("editFormTitle").textContent = mode() === "add" ? `新しく追加：${TYPE_LABELS[selectedEditType]}` : rowTitle(selectedEditType, row);
-    fields.innerHTML = `<div class="edit-current-preview wide"><span>${EDIT_TYPE_META[selectedEditType].icon} ${mode() === "add" ? "新規追加" : "編集中"}</span><strong>2年3組 / ${escapeHtml(TYPE_LABELS[selectedEditType])}</strong><small>${mode() === "add" ? "保存するとサイトに新しく追加されます。" : "内容を直したら保存してください。"}</small></div>` + buildFields(row);
-    if (selectedEditType === "announcements") window.grade2PhotoEditor?.mount(fields);
-    $("formStatus").textContent = "内容を入力して保存してください。写真の添付後も最後に保存が必要です。";
+    window.grade2PhotoEditor?.dispose();
+    fields.innerHTML = `<div class="edit-current-preview wide"><span>${EDIT_TYPE_META[selectedEditType].icon} ${mode() === "add" ? "新規追加" : "編集中"}</span><strong>2年3組 / ${escapeHtml(TYPE_LABELS[selectedEditType])}</strong><small>${mode() === "add" ? "保存するとサイトに新しく追加されます。" : "内容を直したら保存してください。"}</small></div>` + buildFields({ ...row, ...draft?.values });
+    if (EDIT_FIELDS[selectedEditType].some(([name]) => name === "画像URL")) window.grade2PhotoEditor?.mount(fields, draft?.photo, { purpose: selectedEditType });
+    $("formStatus").textContent = draft ? "下書きを戻しました。内容と写真を確認して保存してください。" : "内容を入力して保存してください。写真の添付後も最後に保存が必要です。";
   };
   submitEdit = async function (event) {
     event.preventDefault();
@@ -106,36 +119,76 @@
       $("editorKey")?.focus();
       return;
     }
+    if (window.grade2PhotoEditor?.snapshot()?.file) {
+      status.textContent = "選択中の写真はまだDriveに保存されていません。先に「選んだ写真をDriveに保存」を押すか、写真の「選択を解除」を押してください。";
+      return;
+    }
     const action = mode() === "add" ? "add" : "update";
+    rememberDraft();
+    const previousKey = currentKey();
     const payload = { ...Object.fromEntries(new FormData(event.currentTarget)), type: selectedEditType };
     if (action === "update") payload.rowNumber = selectedRowNumber;
     const submit = event.currentTarget.querySelector('[type="submit"]');
     saving = true;
     submit.disabled = true;
+    $("editFields").disabled = true;
     status.textContent = "保存中…";
     try {
       const result = await window.grade2Backend.request(action, payload);
+      const rowNumber = String(result.rowNumber);
+      const savedKey = selectedEditType + ":" + rowNumber;
+      savedRows.set(savedKey, { ...payload, ...result.row, __rowNumber: rowNumber });
+      drafts.delete(previousKey);
       dirty = false;
       renderedKey = "";
       window.grade2Backend.forgetRequests();
-      selectedRowNumber = String(result.rowNumber);
+      selectedRowNumber = rowNumber;
       clearLocalDataCache();
-      await loadData();
+      let refreshed;
+      try { refreshed = await loadData(); }
+      catch (error) { console.warn("保存後の再読み込みを完了できませんでした。", error); }
+      const synchronized = refreshed?.ok && (appData[selectedEditType] || []).some(row => row.__rowNumber === rowNumber);
+      if (synchronized) savedRows.delete(savedKey);
       saving = false;
       renderEditForm(true);
-      status.textContent = "保存しました。お知らせページから表示を確認できます。";
+      status.textContent = synchronized ? "保存しました。最新データの表示も確認できました。" : "保存しました。最新一覧の再読み込みは未完了です。保存した内容を表示しています。接続が戻ったら再同期してください。";
       toast("保存しました");
     } catch (error) { status.textContent = `保存できませんでした: ${error.message}`; }
-    finally { saving = false; submit.disabled = false; }
+    finally { saving = false; submit.disabled = false; $("editFields").disabled = false; }
   };
   initEvents = function () {
+    if (window.location?.href) {
+      const params = new URL(window.location.href).searchParams;
+      if (Object.prototype.hasOwnProperty.call(EDIT_FIELDS, params.get("type"))) {
+        selectedEditType = params.get("type");
+        selectedRowNumber = params.get("mode") === "add" ? "__new__" : "";
+      }
+    }
     $("reloadBtn")?.addEventListener("click", loadData);
     $("copyPrepBtn")?.addEventListener("click", copyPrep);
     $("editTypeSelect")?.addEventListener("change", event => choose(event.target.value, ""));
     $("editSearch")?.addEventListener("input", renderEditRowList);
-    $("editForm")?.addEventListener("input", () => { dirty = true; });
-    $("editForm")?.addEventListener("change", () => { dirty = true; });
+    $("editForm")?.addEventListener("input", () => { dirty = true; rememberDraft(); });
+    $("editForm")?.addEventListener("change", () => { dirty = true; rememberDraft(); });
     $("editForm")?.addEventListener("submit", submitEdit);
-    $("resetEditorBtn")?.addEventListener("click", () => renderEditForm(true));
+    $("resetEditorBtn")?.addEventListener("click", () => { if (busy()) return; drafts.delete(currentKey()); dirty = false; renderEditForm(true); });
+    window.addEventListener("grade2:data-updated", () => {
+      if (saving) return;
+      let updated = false;
+      for (const key of savedRows.keys()) {
+        const [type, rowNumber] = key.split(":");
+        if ((appData[type] || []).some(row => row.__rowNumber === rowNumber)) {
+          savedRows.delete(key);
+          updated = true;
+        }
+      }
+      if (updated) renderEditForm();
+    });
+    window.addEventListener("beforeunload", event => {
+      rememberDraft();
+      if (!saving && !dirty && drafts.size === 0) return;
+      event.preventDefault();
+      event.returnValue = "";
+    });
   };
 })();

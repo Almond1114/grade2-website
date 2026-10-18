@@ -40,11 +40,28 @@ test('add stores fixed class, neutralizes formulas and returns the created row',
   const result = f.post({ action: 'add', type: 'announcements', タイトル: '=IMPORTXML("https://example.com")' });
   assert.equal(result.ok, true);
   assert.equal(result.rowNumber, 2);
+  assert.equal(result.row.__rowNumber, '2');
+  assert.equal(result.row.クラス, '2-3');
   const row = f.context.readSheet('お知らせ')[0];
   assert.equal(row.クラス, '2-3');
   assert.ok(row.タイトル.startsWith("'="));
   assert.equal(f.post({ action: 'add', type: 'announcements', クラス: '2-4' }).ok, false);
   assert.equal(f.post({ action: 'add', type: 'constructor' }).ok, false);
+});
+
+test('timetable photos store their source and expose only exact 2-3 rows', () => {
+  const f = backendFixture();
+  const image = 'https://drive.google.com/file/d/fixture_timetable_1234/view';
+  const source = 'https://classroom.google.com/c/course23/p/weekly';
+  const result = f.post({ action:'add', type:'timetablePhotos', 日付:'2026-10-18', タイトル:'今週の時間割', 画像URL:image, リンクURL:source });
+  assert.equal(result.ok, true);
+  assert.equal(result.row.クラス, '2-3');
+  assert.equal(result.row.画像URL, image);
+  assert.equal(result.row.リンクURL, source);
+  const sheet = f.sheets.get('時間割の写真');
+  for (const cls of ['2-1','全体','']) sheet.appendRow(sheet.rows[0].map(name => name === 'クラス' ? cls : name === '画像URL' ? image : ''));
+  assert.equal(f.context.getAllData().timetablePhotos.length, 1);
+  assert.equal(f.post({ action:'update', type:'timetablePhotos', rowNumber:3, タイトル:'上書き' }).ok, false);
 });
 
 test('foreign row numbers and modified class values are rejected on update', () => {
@@ -56,6 +73,7 @@ test('foreign row numbers and modified class values are rejected on update', () 
   const result = f.post({ action: 'update', type: 'announcements', rowNumber: 3, クラス: '2-3', タイトル: 'new title' });
   assert.equal(result.ok, true);
   assert.equal(result.rowNumber, 3);
+  assert.equal(result.row.タイトル, 'new title');
   assert.equal(f.context.readSheet('お知らせ')[0].タイトル, '');
 });
 
@@ -125,7 +143,9 @@ test('migration appends missing headers and preserves all existing rows', () => 
   const f = backendFixture();
   const sheet = f.sheets.get('お知らせ');
   sheet.rows = [['クラス','タイトル'], ['2-1','残す'], ['2-3','これも残す']];
+  f.sheets.delete('時間割の写真');
   f.context.migrateGrade23();
+  assert.ok(f.sheets.get('時間割の写真').rows[0].includes('画像URL'));
   assert.deepEqual(sheet.rows.slice(1), [['2-1','残す'],['2-3','これも残す']]);
   assert.ok(sheet.rows[0].includes('画像URL'));
   assert.equal(sheet.rows[0].filter(value => value === 'タイトル').length, 1);
@@ -139,6 +159,15 @@ test('push recipients are limited to 2-3 even when old registrations remain', ()
   sheet.appendRow(['TRUE','old','2-1','web','token1']);
   sheet.appendRow(['TRUE','current','2-3','web','token23']);
   assert.equal(f.context.countActivePushTokens(), 1);
+});
+
+test('timetable photo update notifications target the class timetable photo', () => {
+  const f = backendFixture();
+  let message;
+  f.context.isFcmConfigured_ = () => true;
+  f.context.sendPushToAll_ = value => { message = value; return {sent:1,failed:0}; };
+  f.context.notifyPushOnEdit('timetablePhotos','時間割の写真',2,'追加',['タイトル','クラス'],['今週の時間割','2-3']);
+  assert.equal(message.data.screen,'timetablePhotos');
 });
 
 test('JSONP callback is constrained to an identifier', () => {

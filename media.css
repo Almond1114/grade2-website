@@ -4,6 +4,8 @@
 .notice-media img.notice-photo{display:block;width:100%;height:auto;max-height:520px;object-fit:contain;border-radius:0;margin:0}
 .notice-media figcaption{display:grid;gap:7px;padding:13px 16px;font-size:13px;line-height:1.6}
 .notice-media figcaption small{font-size:12px;color:var(--muted,#64748b)}
+.timetable-photo .notice-media iframe{height:clamp(380px,75vh,800px)}
+.timetable-photo .notice-media img.notice-photo{max-height:85vh}
 .notice-media figcaption a,.classroom-photo-choice a{color:var(--accent,#2563eb);text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
 .editor-access{display:grid;gap:14px;margin-bottom:22px}
 .editor-access h2{margin:0;font-size:21px}
@@ -29,9 +31,18 @@
 .photo-preview:empty{display:none}
 .class-label{padding:8px 12px;border-radius:999px;font-size:12px;font-weight:800;color:inherit;background:var(--accent-soft)}
 .photo-preview{margin-top:16px}
+#editFields{margin:0;padding:0;border:0;min-width:0}
+#editFields:disabled{opacity:.75}
+.photo-local-preview{display:grid;gap:10px;margin:14px 0;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--surface-strong)}
+.photo-local-preview img{display:block;width:100%;max-height:320px;object-fit:contain;border-radius:8px}
+.photo-local-preview button{justify-self:start}
+.photo-local-preview small,.photo-selection{font-size:12px;line-height:1.7;overflow-wrap:anywhere}
 .photo-classroom-controls{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
 .photo-classroom-controls label{display:grid;gap:8px;font-size:13px;min-width:0}
 .photo-classroom-controls select{max-width:100%;width:100%;font:inherit;padding:11px;border-radius:10px;border:1px solid var(--border,#cbd5e1);background:var(--surface,#fff);color:inherit}
+.photo-search-label{display:grid;gap:8px;margin-bottom:16px;font-size:13px}
+.photo-search-label input{width:100%;min-width:0;font:inherit;padding:12px;border:1px solid var(--border,#cbd5e1);border-radius:10px;background:var(--surface,#fff);color:inherit}
+.photo-search-label small{font-size:12px;line-height:1.7;color:var(--muted,#64748b)}
 .classroom-photo-list{display:grid;gap:10px;margin:14px 0}
 .classroom-photo-choice{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;border:1px solid var(--border,#dbe3ee);border-radius:12px}
 .classroom-photo-choice>div{display:grid;gap:8px;min-width:0;font-size:13px;overflow-wrap:anywhere}

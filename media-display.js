@@ -21,7 +21,16 @@
     if (media.kind === "drive") return `<figure class="notice-media drive-media"><iframe src="${escape(media.previewUrl)}" title="${label}：Driveの写真プレビュー" loading="lazy" referrerpolicy="no-referrer" allowfullscreen></iframe><figcaption><a href="${escape(media.url)}" target="_blank" rel="noopener noreferrer">Driveで写真を開く ↗</a><small>表示できないときは、閲覧権限のあるGoogleアカウントで開いてください。</small></figcaption></figure>`;
     return `<figure class="notice-media"><a href="${escape(media.url)}" target="_blank" rel="noopener noreferrer"><img class="notice-photo" src="${escape(media.url)}" alt="${label}" loading="lazy" referrerpolicy="no-referrer"></a><figcaption><a href="${escape(media.url)}" target="_blank" rel="noopener noreferrer">元の写真を開く ↗</a></figcaption></figure>`;
   }
-  window.grade2Media = { describe, markup };
+  function filterPhotos(photos, query) {
+    const normalized = String(query || "").normalize("NFKC").trim().toLowerCase();
+    if (!normalized) return [...photos];
+    return photos.filter(photo => {
+      const value = `${photo.name || ""} ${photo.sourceTitle || ""}`.normalize("NFKC").toLowerCase();
+      if (normalized === "時間割") return /時間割|時間わり|週予定|週案|週間予定|日課表/.test(value);
+      return normalized.split(/\s+/).every(word => value.includes(word));
+    });
+  }
+  window.grade2Media = { describe, markup, filterPhotos };
   document.addEventListener("error", event => {
     if (!event.target.matches?.("img.notice-photo")) return;
     event.target.hidden = true;

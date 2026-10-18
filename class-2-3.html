@@ -8,8 +8,8 @@
   <meta name="theme-color" content="#ffffff" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
-  <link rel="stylesheet" href="style.css?v=4.0.0-grade23" />
-  <link rel="stylesheet" href="media.css?v=4.0.0-grade23" />
+  <link rel="stylesheet" href="style.css?v=4.1.0-grade23" />
+  <link rel="stylesheet" href="media.css?v=4.1.0-grade23" />
 </head>
 <body data-page="class" data-class="2-3">
   <header class="site-header">
@@ -34,6 +34,7 @@
     <section class="page-title page-shell"><p class="eyebrow">Class Page</p><h1><span data-class-name>2-3</span> のページ</h1><p>よく使う「明日の準備・時間割・提出物・テスト」を上にまとめています。</p><p id="connectionBanner" class="connection-banner">読み込み中...</p></section>
     <section class="section"><div class="page-shell"><div id="classQuickCards" class="quick-strip"></div></div></section>
     <section class="section"><div class="page-shell"><div class="section-head"><div><h2>明日の準備</h2><p>時間割、提出物、テストをまとめて確認。</p></div><button class="ghost-btn" id="copyPrepBtn" type="button">コピー</button></div><div id="classTomorrowPrep"></div></div></section>
+    <section class="section" id="timetablePhotoSection"><div class="page-shell"><div class="section-head"><div><h2>時間割の写真</h2><p>Classroomで配られた時間割。掲載日が新しい写真を表示します。</p></div><a class="ghost-link" href="edit.html?type=timetablePhotos&amp;mode=add">写真を登録・更新</a></div><div id="classTimetablePhoto" class="timetable-photo"></div></div></section>
     <section class="section"><div class="page-shell"><div class="section-head"><div><h2>時間割</h2><p>2-3の週間時間割。</p></div></div><div id="classTimetable" class="table-wrap"></div></div></section>
     <section class="section"><div class="page-shell grid-2"><div><div class="section-head"><div><h2>提出物</h2><p>期限が近い順。</p></div></div><div id="classHomeworkList"></div></div><div><div class="section-head"><div><h2>テスト予定</h2><p>小テスト・定期テスト。</p></div></div><div id="classTestList"></div></div></div></section>
     <section class="section"><div class="page-shell grid-2"><div><div class="section-head"><div><h2>持ち物</h2><p>忘れ物防止。</p></div></div><div id="classItemList"></div></div><div><div class="section-head"><div><h2>お知らせ</h2><p>2年3組・学年共通の連絡。</p></div></div><div id="classAnnouncementList"></div></div></div></section>
@@ -42,10 +43,10 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging-compat.js"></script>
-  <script src="app-config.js?v=4.0.0-grade23"></script>
-  <script src="theme.js?v=4.0.0-grade23"></script>
-  <script src="media-display.js?v=4.0.0-grade23"></script>
-  <script src="app-core.js?v=4.0.0-grade23"></script>
-  <script src="notifications-web.js?v=4.0.0-grade23"></script>
+  <script src="app-config.js?v=4.1.0-grade23"></script>
+  <script src="theme.js?v=4.1.0-grade23"></script>
+  <script src="media-display.js?v=4.1.0-grade23"></script>
+  <script src="app-core.js?v=4.1.0-grade23"></script>
+  <script src="notifications-web.js?v=4.1.0-grade23"></script>
 </body>
 </html>

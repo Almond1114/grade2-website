@@ -5,7 +5,7 @@ const PHOTO_MAX_BYTES = 3 * 1024 * 1024;
 function rowBelongsToClass_(row, type) {
   if (!Object.prototype.hasOwnProperty.call(row, "クラス")) return true;
   const value = String(row.クラス || "").trim();
-  return value === SITE_CLASS || (type !== "timetable" && (!value || value === "全体"));
+  return value === SITE_CLASS || (!["timetable", "timetablePhotos"].includes(type) && (!value || value === "全体"));
 }
 
 function requireEditorKey_(params) {
@@ -83,7 +83,9 @@ function addEntry_(params) {
     try { push = notifyPushOnEdit(type, info.name, rowNumber, "新しく追加", headers, values); }
     catch (_) { push = { sent: 0, failed: 1 }; }
   }
-  return { ok: true, rowNumber: rowNumber, message: "追加しました", push: push };
+  const savedRow = { __rowNumber: String(rowNumber) };
+  headers.forEach((header, index) => { savedRow[header] = String(values[index] || ""); });
+  return { ok: true, rowNumber: rowNumber, row: savedRow, message: "追加しました", push: push };
 }
 
 function mediaStatus_() {

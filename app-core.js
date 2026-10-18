@@ -11,6 +11,7 @@ const SITE_MARK = String(APP_CONFIG.SITE_MARK || "2").trim();
 const DATA_CACHE_MAX_AGE = Number(APP_CONFIG.DATA_CACHE_MAX_AGE || 10 * 60 * 1000);
 
 const SAMPLE_DATA = {
+  timetablePhotos: [],
   announcements: [
     { __rowNumber: "2", 表示: "TRUE", 日付: "2026-07-04", カテゴリ: "連絡", クラス: "全体", タイトル: "2Base公開", 本文: "時間割・提出物・テスト予定をここで確認できます。", 画像URL: "", リンクURL: "" },
     { __rowNumber: "3", 表示: "TRUE", 日付: "2026-07-08", カテゴリ: "行事", クラス: "全体", タイトル: "学年集会", 本文: "朝の会後に体育館へ移動します。", 画像URL: "", リンクURL: "" }
@@ -43,6 +44,9 @@ const SAMPLE_DATA = {
 };
 
 const EDIT_FIELDS = {
+  timetablePhotos: [
+    ["表示", "select", ["TRUE", "FALSE"]], ["日付", "date"], ["クラス", "text"], ["タイトル", "text"], ["画像URL", "url"], ["リンクURL", "url"], ["メモ", "textarea"]
+  ],
   announcements: [
     ["表示", "select", ["TRUE", "FALSE"]], ["日付", "date"], ["カテゴリ", "text"], ["クラス", "text"], ["タイトル", "text"], ["本文", "textarea"], ["画像URL", "url"], ["リンクURL", "url"]
   ],
@@ -64,6 +68,7 @@ const EDIT_FIELDS = {
 };
 
 const TYPE_LABELS = {
+  timetablePhotos: "時間割の写真",
   announcements: "お知らせ",
   timetable: "時間割",
   tests: "テスト予定",
@@ -73,6 +78,7 @@ const TYPE_LABELS = {
 };
 
 const EDIT_TYPE_META = {
+  timetablePhotos: { icon: "🖼️", short: "Classroomの配布画像", hint: "時間割の写真と引用元の投稿を登録" },
   announcements: { icon: "📢", short: "学年・クラス連絡", hint: "日付・タイトル・本文・画像URLを変更" },
   timetable: { icon: "📅", short: "曜日ごとの授業", hint: "クラス・曜日・1〜6時間目・持ち物メモを変更" },
   homework: { icon: "📝", short: "締切と内容", hint: "教科・締切・内容・メモを変更" },
@@ -80,7 +86,7 @@ const EDIT_TYPE_META = {
   items: { icon: "🎒", short: "忘れ物対策", hint: "持ち物名・対象クラス・メモを変更" },
   links: { icon: "🔗", short: "学習リンク", hint: "タイトル・URL・説明を変更" }
 };
-const EDIT_TYPE_ORDER = ["announcements", "timetable", "homework", "tests", "items", "links"];
+const EDIT_TYPE_ORDER = ["announcements", "timetable", "timetablePhotos", "homework", "tests", "items", "links"];
 
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 const SCHOOL_DAYS = ["月", "火", "水", "木", "金"];
@@ -92,6 +98,8 @@ let selectedClass = CLASS_ID;
 let dataMode = "loading";
 let selectedEditType = "announcements";
 let selectedRowNumber = "";
+let dataLoadGeneration = 0;
+let lastDataReceivedAt = 0;
 
 const $ = (id) => document.getElementById(id);
 
@@ -127,7 +135,7 @@ function scopeClassData(data) {
     scoped[type] = (scoped[type] || []).filter(row => {
       if (!("クラス" in row)) return true;
       const value = text(row.クラス);
-      return value === CLASS_ID || (type !== "timetable" && (!value || value === "全体"));
+      return value === CLASS_ID || (!["timetable", "timetablePhotos"].includes(type) && (!value || value === "全体"));
     });
   });
   scoped.editLog = [];
@@ -146,7 +154,10 @@ function escapeHtml(str) {
 }
 function safeUrl(url) {
   const value = text(url);
-  return value.startsWith("https://") ? value : "";
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "https:" && !parsed.username && !parsed.password ? parsed.href : "";
+  } catch (_) { return ""; }
 }
 function parseDate(value) {
   const raw = text(value);
@@ -267,17 +278,18 @@ function clearLocalDataCache() {
 }
 
 async function loadData() {
+  const generation = ++dataLoadGeneration;
   renderConnection("loading");
   if (!GAS_URL) {
     appData = scopeClassData(SAMPLE_DATA);
     dataMode = "sample";
     renderAll();
     renderConnection("sample");
-    return;
+    return { ok: false, mode: "sample" };
   }
 
   const cached = readLocalDataCache();
-  if (cached?.data) {
+  if (cached?.data && dataMode !== "live") {
     appData = scopeClassData(cached.data);
     dataMode = "cached";
     renderAll();
@@ -287,28 +299,34 @@ async function loadData() {
 
   try {
     const res = await jsonp(`${GAS_URL}?action=data`);
+    if (generation !== dataLoadGeneration) return { ok: false, superseded: true };
     if (!res?.ok) throw new Error(res?.error || "データ取得エラー");
-    appData = scopeClassData(res.data || SAMPLE_DATA);
+    if (!res.data || !Array.isArray(res.data.announcements)) throw new Error("接続先から正しいサイトデータが返りませんでした。");
+    appData = scopeClassData(res.data);
     saveLocalDataCache(appData);
     dataMode = "live";
+    lastDataReceivedAt = Date.now();
     renderAll();
     renderConnection("live");
     window.dispatchEvent(new CustomEvent("grade2:data-updated"));
+    return { ok: true, mode: "live" };
   } catch (error) {
+    if (generation !== dataLoadGeneration) return { ok: false, superseded: true };
     console.warn(error);
+    if (dataMode === "live" && appData) {
+      renderConnection("cached-error", lastDataReceivedAt);
+      return { ok: false, mode: "live", error: error.message };
+    }
     if (cached?.data) {
       dataMode = "cached";
       renderConnection("cached-error", cached.savedAt);
-      return;
-    }
-    if (dataMode === "live" && appData) {
-      renderConnection("cached-error", Date.now());
-      return;
+      return { ok: false, mode: "cached", error: error.message };
     }
     appData = scopeClassData(SAMPLE_DATA);
     dataMode = "sample";
     renderAll();
     renderConnection("sample", error.message);
+    return { ok: false, mode: "sample", error: error.message };
   }
 }
 function renderConnection(mode, detail = "") {
@@ -325,8 +343,8 @@ function renderConnection(mode, detail = "") {
     box.textContent = `通信が不安定なので、${when}に保存したデータを表示しています。`;
   } else box.textContent = detail ? `サンプル表示中：${detail}` : "サンプル表示中：app-config.js に GAS_URL を入れると本番データになります。";
 }
-function card(title, body, meta = "", href = "") {
-  const inner = `<h3>${escapeHtml(title)}</h3>${body ? `<p>${escapeHtml(body)}</p>` : ""}${meta ? `<small>${meta}</small>` : ""}`;
+function card(title, body, meta = "", href = "", badge = "") {
+  const inner = `<h3>${escapeHtml(title)}</h3>${body ? `<p>${escapeHtml(body)}</p>` : ""}${badge}${meta ? `<small>${escapeHtml(meta)}</small>` : ""}`;
   return href ? `<a class="content-card link-card" href="${escapeHtml(href)}">${inner}</a>` : `<article class="content-card">${inner}</article>`;
 }
 function emptyState(message) { return `<div class="empty-state">${escapeHtml(message)}</div>`; }
@@ -383,8 +401,8 @@ function renderHome() {
   if (quick) {
     quick.innerHTML = [
       card("今日", `${new Date().getMonth()+1}/${new Date().getDate()}（${WEEKDAYS[new Date().getDay()]}）`, SITE_SUBTITLE),
-      card("次のテスト", t ? `${t.タイトル || t.教科} ${dueBadge(t.日付)}` : "予定なし", t ? `${dateLabel(t.日付)} / ${escapeHtml(t.範囲 || "")}` : ""),
-      card("次の提出物", h ? `${h.タイトル || h.教科} ${dueBadge(h.締切)}` : "予定なし", h ? `${dateLabel(h.締切)} / ${escapeHtml(h.内容 || "")}` : ""),
+      card("次のテスト", t ? t.タイトル || t.教科 : "予定なし", t ? `${dateLabel(t.日付)} / ${t.範囲 || ""}` : "", "", t ? dueBadge(t.日付) : ""),
+      card("次の提出物", h ? h.タイトル || h.教科 : "予定なし", h ? `${dateLabel(h.締切)} / ${h.内容 || ""}` : "", "", h ? dueBadge(h.締切) : ""),
       card("明日の準備", tomorrow.timetable ? PERIODS.map(p => tomorrow.timetable[p]).filter(Boolean).slice(0,3).join("・") + "..." : "時間割未入力", `${cls} / ${tomorrow.day}曜日`)
     ].join("");
   }
@@ -401,7 +419,7 @@ function renderHome() {
       ...upcomingRows("tests", "日付", cls).slice(0, 3).map(r => ({type:"テスト", date:r.日付, title:r.タイトル || r.教科, sub:r.範囲 || r.メモ})),
       ...upcomingRows("homework", "締切", cls).slice(0, 3).map(r => ({type:"提出物", date:r.締切, title:r.タイトル || r.教科, sub:r.内容 || r.メモ}))
     ].sort((a,b) => (parseDate(a.date) || 9999999999999) - (parseDate(b.date) || 9999999999999)).slice(0, 6);
-    upcoming.innerHTML = rows.length ? rows.map(r => `<article class="list-card"><div><span class="mini-label">${escapeHtml(r.type)}</span><h3>${escapeHtml(r.title)}</h3><p>${escapeHtml(r.sub)}</p></div><div>${dueBadge(r.date)}<small>${dateLabel(r.date)}</small></div></article>`).join("") : emptyState("近い予定はありません。");
+    upcoming.innerHTML = rows.length ? rows.map(r => `<article class="list-card"><div><span class="mini-label">${escapeHtml(r.type)}</span><h3>${escapeHtml(r.title)}</h3><p>${escapeHtml(r.sub)}</p></div><div>${dueBadge(r.date)}<small>${escapeHtml(dateLabel(r.date))}</small></div></article>`).join("") : emptyState("近い予定はありません。");
   }
 
   const classes = $("classCards");
@@ -412,7 +430,7 @@ function renderHome() {
       const tomorrow = getTomorrowInfo(cls);
       return `<a class="class-card" href="class-${escapeHtml(cls)}.html">
         <strong>${escapeHtml(cls)}</strong>
-        <span>${tomorrow.timetable ? PERIODS.map(p => tomorrow.timetable[p]).filter(Boolean).slice(0,3).join("・") : "時間割未入力"}</span>
+        <span>${escapeHtml(tomorrow.timetable ? PERIODS.map(p => tomorrow.timetable[p]).filter(Boolean).slice(0,3).join("・") : "時間割未入力")}</span>
         <small>${nT ? `テスト: ${escapeHtml(nT.タイトル || nT.教科)}` : "テスト予定なし"} / ${nH ? `提出物: ${escapeHtml(nH.タイトル || nH.教科)}` : "提出物なし"}</small>
       </a>`;
     }).join("");
@@ -424,8 +442,14 @@ function noticeCard(row) {
   const media = img && window.grade2Media ? window.grade2Media.markup(img, row.タイトル || "お知らせの写真") : "";
   let isClassroom = false;
   try { isClassroom = new URL(link).hostname === "classroom.google.com"; } catch (_) {}
-  const html = `<article class="content-card notice-card">${media}<div><span class="mini-label">${escapeHtml(row.カテゴリ || "連絡")} / ${escapeHtml(row.クラス || CLASS_ID)}</span><h3>${escapeHtml(row.タイトル)}</h3><p>${escapeHtml(row.本文)}</p><small>${dateLabel(row.日付)}</small>${link ? `<a class="text-link" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">${isClassroom ? "引用元：Classroomの投稿を開く" : "リンクを開く"}</a>` : ""}</div></article>`;
+  const html = `<article class="content-card notice-card">${media}<div><span class="mini-label">${escapeHtml(row.カテゴリ || "連絡")} / ${escapeHtml(row.クラス || CLASS_ID)}</span><h3>${escapeHtml(row.タイトル)}</h3><p>${escapeHtml(row.本文)}</p><small>${escapeHtml(dateLabel(row.日付))}</small>${link ? `<a class="text-link" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">${isClassroom ? "引用元：Classroomの投稿を開く" : "リンクを開く"}</a>` : ""}</div></article>`;
   return html;
+}
+function latestTimetablePhoto() {
+  return visibleRows("timetablePhotos").filter(row => text(row.クラス) === CLASS_ID && window.grade2Media?.describe(row.画像URL)).sort((a, b) => {
+    const dateDifference = (parseDate(b.日付)?.getTime() || 0) - (parseDate(a.日付)?.getTime() || 0);
+    return dateDifference || Number(b.__rowNumber || 0) - Number(a.__rowNumber || 0);
+  })[0] || null;
 }
 function renderClassPage() {
   if (!document.body.matches('[data-page="class"]')) return;
@@ -436,19 +460,24 @@ function renderClassPage() {
   const t = nextTest(cls);
   const h = nextHomework(cls);
   const tomorrow = getTomorrowInfo(cls);
+  const timetablePhoto = latestTimetablePhoto();
   const quick = $("classQuickCards");
   if (quick) {
     quick.innerHTML = [
       card("明日の時間割", tomorrow.timetable ? PERIODS.map(p => tomorrow.timetable[p]).filter(Boolean).join("・") : "未入力", `${tomorrow.day}曜日 / ${tomorrow.timetable?.持ち物メモ || "持ち物メモなし"}`),
-      card("次の提出物", h ? `${h.タイトル || h.教科} ${dueBadge(h.締切)}` : "予定なし", h ? `${dateLabel(h.締切)} / ${escapeHtml(h.内容 || "")}` : ""),
-      card("次のテスト", t ? `${t.タイトル || t.教科} ${dueBadge(t.日付)}` : "予定なし", t ? `${dateLabel(t.日付)} / ${escapeHtml(t.範囲 || "")}` : ""),
-      card("よく使う", "時間割・提出物・テストを上にまとめています。", "このページだけで準備確認OK")
+      card("次の提出物", h ? h.タイトル || h.教科 : "予定なし", h ? `${dateLabel(h.締切)} / ${h.内容 || ""}` : "", "", h ? dueBadge(h.締切) : ""),
+      card("次のテスト", t ? t.タイトル || t.教科 : "予定なし", t ? `${dateLabel(t.日付)} / ${t.範囲 || ""}` : "", "", t ? dueBadge(t.日付) : ""),
+      card("配布された時間割", timetablePhoto?.タイトル || "時間割の写真は未登録", timetablePhoto ? `掲載日：${dateLabel(timetablePhoto.日付)}` : "Classroomから写真を登録できます", "#timetablePhotoSection")
     ].join("");
   }
   const prep = $("classTomorrowPrep");
   if (prep) prep.innerHTML = buildPrepHtml(cls);
   const table = $("classTimetable");
   if (table) table.innerHTML = buildTimetableHtml(cls);
+  const photoBox = $("classTimetablePhoto");
+  if (photoBox) {
+    photoBox.innerHTML = timetablePhoto ? noticeCard({ ...timetablePhoto, タイトル: timetablePhoto.タイトル || "時間割の写真", カテゴリ: "時間割", 本文: timetablePhoto.メモ || "" }) : emptyState("時間割の写真はまだ登録されていません。Classroomの配布画像を引用して、ここに表示できます。");
+  }
   const hw = $("classHomeworkList");
   if (hw) hw.innerHTML = renderSimpleRows(upcomingRows("homework", "締切", cls), "homework");
   const tests = $("classTestList");
@@ -476,8 +505,8 @@ function buildTimetableHtml(cls) {
 function renderSimpleRows(rows, type) {
   if (!rows.length) return emptyState("表示できるデータがありません。");
   return rows.map(row => {
-    if (type === "tests") return `<article class="list-card"><div><span class="mini-label">${escapeHtml(row.教科)} / ${escapeHtml(row.クラス || "全体")}</span><h3>${escapeHtml(row.タイトル)}</h3><p>${escapeHtml(row.範囲 || row.メモ)}</p><small>${escapeHtml(row.持ち物 || "")}</small></div><div>${dueBadge(row.日付)}<small>${dateLabel(row.日付)}</small></div></article>`;
-    if (type === "homework") return `<article class="list-card"><div><span class="mini-label">${escapeHtml(row.教科)} / ${escapeHtml(row.クラス || "全体")}</span><h3>${escapeHtml(row.タイトル)}</h3><p>${escapeHtml(row.内容 || row.メモ)}</p></div><div>${dueBadge(row.締切)}<small>${dateLabel(row.締切)}</small></div></article>`;
+    if (type === "tests") return `<article class="list-card"><div><span class="mini-label">${escapeHtml(row.教科)} / ${escapeHtml(row.クラス || "全体")}</span><h3>${escapeHtml(row.タイトル)}</h3><p>${escapeHtml(row.範囲 || row.メモ)}</p><small>${escapeHtml(row.持ち物 || "")}</small></div><div>${dueBadge(row.日付)}<small>${escapeHtml(dateLabel(row.日付))}</small></div></article>`;
+    if (type === "homework") return `<article class="list-card"><div><span class="mini-label">${escapeHtml(row.教科)} / ${escapeHtml(row.クラス || "全体")}</span><h3>${escapeHtml(row.タイトル)}</h3><p>${escapeHtml(row.内容 || row.メモ)}</p></div><div>${dueBadge(row.締切)}<small>${escapeHtml(dateLabel(row.締切))}</small></div></article>`;
     if (type === "items") return `<article class="list-card"><div><span class="mini-label">${escapeHtml(row.日付 || "持ち物")}</span><h3>${escapeHtml(row.タイトル)}</h3><p>${escapeHtml(row.持ち物)}</p><small>${escapeHtml(row.メモ || "")}</small></div></article>`;
     if (type === "links") {
       const url = safeUrl(row.URL);
@@ -521,6 +550,7 @@ function rowsForEdit() {
   return rows.filter(row => Object.values(row).some(v => text(v).toLowerCase().includes(q)));
 }
 function rowTitle(type, row) {
+  if (type === "timetablePhotos") return `${row.日付 || "掲載日未定"} ${row.タイトル || "時間割の写真"}`;
   if (type === "announcements") return `${row.日付 || "日付なし"} ${row.タイトル || "無題"}`;
   if (type === "timetable") return `${row.クラス || "?"} ${row.曜日 || "?"}曜日`;
   if (type === "tests") return `${row.日付 || "日付なし"} ${row.教科 || ""} ${row.タイトル || ""}`;
@@ -584,6 +614,7 @@ function renderEditForm() {
   fieldsBox.innerHTML = preview + fields;
 }
 function fieldHelpText(name, type) {
+  if (type === "timetablePhotos" && name === "日付") return '<small class="field-help">掲載日です。日付が新しい写真を表示し、同じ日なら後から追加した行を優先します。</small>';
   const helps = {
     表示: "TRUEで表示、FALSEで非表示",
     クラス: "保存先は2年3組に固定されています",

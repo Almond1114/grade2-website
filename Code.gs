@@ -34,6 +34,12 @@ const SHEETS = {
     ],
     note: "クラスと曜日で1行です。例：2-3 / 月。"
   },
+  timetablePhotos: {
+    name: "時間割の写真",
+    headers: ["表示", "日付", "クラス", "タイトル", "画像URL", "リンクURL", "メモ", "作成日時", "更新日時"],
+    sample: [],
+    note: "Classroomから引用した時間割の写真を登録します。掲載日が新しい写真を2年3組の時間割欄に表示します。"
+  },
   tests: {
     name: "テスト予定",
     headers: ["表示", "日付", "クラス", "教科", "タイトル", "範囲", "持ち物", "メモ", "作成日時", "更新日時"],
@@ -75,7 +81,7 @@ const LOG_SHEET_NAME = "編集ログ";
 const HELP_SHEET_NAME = "使い方";
 const PUSH_TOKENS_SHEET_NAME = "Push登録端末";
 const PUSH_ON_EDIT = true;
-const DATA_CACHE_KEY = "GRADE23_SITE_DATA_V4";
+const DATA_CACHE_KEY = "GRADE23_SITE_DATA_V4_1";
 const DATA_CACHE_SECONDS = 90;
 const FCM_SCOPE = "https://www.googleapis.com/auth/firebase.messaging";
 
@@ -334,7 +340,7 @@ function updateEntry(params) {
   if (!Number.isInteger(rowNumber) || rowNumber < 2) return { ok: false, error: "編集する行が正しくありません" };
 
   const sheet = getSpreadsheet().getSheetByName(info.name);
-  if (!sheet) throw new Error(`シート「${info.name}」がありません。setupSheetsを実行してください。`);
+  if (!sheet) throw new Error(`シート「${info.name}」がありません。migrateGrade23を実行してください。`);
   if (rowNumber > sheet.getLastRow()) return { ok: false, error: "指定された行が見つかりません" };
 
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getDisplayValues()[0].map(String);
@@ -378,7 +384,9 @@ function updateEntry(params) {
     catch (_) { pushResult = { sent: 0, failed: 1 }; }
   }
 
-  return { ok: true, message: "保存しました", rowNumber: rowNumber, push: pushResult };
+  const savedRow = { __rowNumber: String(rowNumber) };
+  headers.forEach((header, index) => { savedRow[header] = String(newValues[index] || ""); });
+  return { ok: true, message: "保存しました", rowNumber: rowNumber, row: savedRow, push: pushResult };
 }
 
 function appendLog(typeName, rowNumber, detail, beforeText, afterText) {
@@ -571,7 +579,7 @@ function notifyPushOnEdit(typeKey, typeName, rowNumber, detail, headers, newValu
         sheetName: typeName,
         rowNumber: String(rowNumber),
         className: cleanPushText(className, 80),
-        screen: "home"
+        screen: ["timetable", "timetablePhotos"].includes(typeKey) ? typeKey : "home"
       }
     });
 

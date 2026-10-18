@@ -106,6 +106,17 @@ test('Drive URLs preserve resource keys and use the preview viewer; unsafe URLs 
   assert.doesNotMatch(markup('https://example.com/a.jpg', '"><script>alert(1)</script>'), /<script>/);
 });
 
+test('Classroom photo search finds timetable synonyms and normalizes full-width query words', () => {
+  const context = vm.createContext({ URL, window: {}, document: { addEventListener() {} } });
+  vm.runInContext(source('media-display.js'), context);
+  const search = context.window.grade2Media.filterPhotos;
+  const photos = [{name:'photo.jpg',sourceTitle:'10月の週予定'}, {name:'時間わり.png',sourceTitle:'2年3組'}, {name:'学級だより.jpg',sourceTitle:'学校'}, {name:'MATH　２－３.jpg',sourceTitle:'復習用'}];
+  assert.deepEqual(Array.from(search(photos,'時間割')),photos.slice(0,2));
+  assert.deepEqual(Array.from(search(photos,'math 2-3')), [photos[3]]);
+  assert.deepEqual(Array.from(search(photos,'  ')),photos);
+  assert.equal(search(photos,'一致しない言葉').length,0);
+});
+
 test('a remembered or requested foreign class cannot change the class or expose foreign cached rows', () => {
   const storage = new Map([['grade2SelectedClass','2-1']]);
   const context = vm.createContext({
@@ -196,8 +207,30 @@ test('PWA assets have unique existing paths and activation keeps caches for unre
   const assets = Array.from(vm.runInContext('SITE_ASSETS', context));
   assert.equal(new Set(assets).size, assets.length);
   for (const asset of assets) assert.ok(fs.existsSync(new URL('../' + asset.split('?')[0], import.meta.url)), `missing precache asset ${asset}`);
+  const root = new URL('..',import.meta.url);
+  for (const page of fs.readdirSync(root).filter(name => name.endsWith('.html'))) {
+    for (const match of source(page).matchAll(/(?:src|href)="([^"/:]+\.(?:js|css)\?[^"\s]+)"/g)) {
+      assert.ok(assets.includes('./' + match[1]), `${page} requests an asset version that is not precached: ${match[1]}`);
+    }
+  }
+  for (const match of source('theme.js').matchAll(/load(?:Css|Script)Once\("([^"]+)"/g)) assert.ok(assets.includes('./' + match[1]), `theme asset is not precached: ${match[1]}`);
   let complete;
   handlers.activate({ waitUntil: promise => { complete = promise; } });
   await complete;
   assert.deepEqual(removed, ['grade2-site-old', 'grade2-site-v4-grade23-20261018']);
+});
+
+test('a timetable photo notification opens the image section in the repository path', async () => {
+  const handlers = {};
+  let opened;
+  const context = vm.createContext({
+    URL, console:{error() {}}, importScripts() { throw Error('no Firebase in unit test'); },
+    self:{ addEventListener:(name,fn) => {handlers[name] = fn;},registration:{scope:'https://example.com/grade2-website/'} },
+    clients:{matchAll:async () => [],openWindow:async url => {opened = url;} }
+  });
+  vm.runInContext(source('firebase-messaging-sw.js'),context);
+  let complete;
+  handlers.notificationclick({notification:{close() {},data:{screen:'timetablePhotos'}},waitUntil:promise => {complete = promise;} });
+  await complete;
+  assert.equal(opened,'https://example.com/grade2-website/class-2-3.html#timetablePhotoSection');
 });
