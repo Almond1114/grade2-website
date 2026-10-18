@@ -26,7 +26,8 @@ Node.js 20以上。追加パッケージのインストールは不要です。G
 | `backend-client.js` | 編集キーとPOST通信 |
 | `media-editor.js` | 写真選択・縮小・Drive保存・Classroom引用 |
 | `media-display.js` / `media.css` | 共有URLからの写真表示 |
+| `mobile-ui.css` / `ux-enhancements.js` | スマホ用の下部メニューと画面配置 |
 | `Code.gs` / `Media.gs` | Apps Script側の保存・権限確認・Classroom取得 |
 | `appsscript.json` | Google APIのサービスと権限 |
 
-`fps-game/`、`neon-arena/`、`nankosai-seiryo/` は別コンテンツとして保持しています。
+NEON RUSHは削除し、旧 `fps-game/` URLは2Baseへ案内します。`neon-arena/` と `nankosai-seiryo/` は別コンテンツとして保持しています。[スマホの画面と操作](docs/MOBILE_UI.md)も参照してください。

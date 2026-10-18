@@ -132,6 +132,6 @@ Driveの共有URLは画像そのもののURLではないため、`img` に直接
 
 `npm test` はApps ScriptのSheets・Drive・Classroomとフォーム・写真処理の境界をテスト用に置き換え、クラス固定、キー確認、共有範囲、引用元、再送、移行時のデータ保持、時間割画像の選択、下書き保持、保存後の通信失敗、URL処理、静的ファイルの参照を検証します。実際のGoogleへのアップロードや、学校アカウントでの閲覧の代わりにはなりません。
 
-`npm run build` は外部依存なしで `dist/` を生成します。GitHub Pagesの既存のルート配信は継続できます。今回の作業環境ではプレビュー基盤の起動が失敗したため、実ブラウザでの見た目・端末別操作は未確認です。
+`npm run build` は外部依存なしで `dist/` を生成します。GitHub Pagesの既存のルート配信は継続できます。今回の作業環境ではプレビュー基盤の起動が失敗したため、写真機能の実画面・端末別操作は未確認です。Google側の更新を必要としない[スマホ用メニュー](MOBILE_UI.md)とNEON RUSHの削除は、先に公開版へ反映しています。
 
 参照：[Apps ScriptのWebアプリ](https://developers.google.com/apps-script/guides/web)、[高度なGoogleサービス](https://developers.google.com/apps-script/guides/services/advanced)、[Classroomの添付資料](https://developers.google.com/workspace/classroom/reference/rest/v1/Material)。
