@@ -1,4 +1,4 @@
-const SITE_CACHE = "grade2-firebase-pwa-v7-ten-themes-20260716";
+const SITE_CACHE = "grade2-site-v4.2.0-mobile-20261019";
 const SITE_ASSETS = [
   "./",
   "./index.html",
@@ -10,24 +10,29 @@ const SITE_ASSETS = [
   "./edit.html",
   "./notifications.html",
   "./reset-cache.html",
-  "./style.css",
-  "./responsive-ui.css",
-  "./mobile-editor-fix.css",
-  "./brand-icon.css",
-  "./stylish-ui.css",
-  "./exceptional-ui.css",
-  "./live-system-ui.css",
-  "./theme-pack.css",
-  "./theme.js",
-  "./ux-enhancements.js",
-  "./live-system-ui.js",
-  "./app-config.js",
-  "./app-core.js",
-  "./editor-add.js",
-  "./notifications-web.js",
-  "./mobile-notification-fix.js",
+  "./style.css?v=4.2.0-mobile",
+  "./responsive-ui.css?v=4.2.0-mobile",
+  "./mobile-editor-fix.css?v=4.2.0-mobile",
+  "./brand-icon.css?v=4.2.0-mobile",
+  "./stylish-ui.css?v=4.2.0-mobile",
+  "./exceptional-ui.css?v=4.2.0-mobile",
+  "./live-system-ui.css?v=4.2.0-mobile",
+  "./theme-pack.css?v=4.2.0-mobile",
+  "./theme.js?v=4.2.0-mobile",
+  "./ux-enhancements.js?v=4.2.0-mobile",
+  "./live-system-ui.js?v=4.2.0-mobile",
+  "./app-config.js?v=4.2.0-mobile",
+  "./app-core.js?v=4.2.0-mobile",
+  "./editor-add.js?v=4.2.0-mobile",
+  "./mobile-ui.css?v=4.2.0-mobile",
+  "./fps-game/",
+  "./fps-game/index.html",
+  "./class-2-3.html",
+  "./notifications-web.js?v=4.2.0-mobile",
+  "./mobile-notification-fix.js?v=4.2.0-mobile",
   "./manifest.webmanifest",
   "./icons/brand-icon.svg",
+  "./icons/brand-icon.svg?v=5",
   "./icons/icon-192.png",
   "./icons/icon-512.png"
 ];
@@ -44,7 +49,7 @@ self.addEventListener("install", event => {
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(key => key !== SITE_CACHE).map(key => caches.delete(key))))
+      .then(keys => Promise.all(keys.filter(key => /^grade2[-_]/.test(key) && key !== SITE_CACHE).map(key => caches.delete(key))))
       .then(() => self.clients.claim())
   );
 });
@@ -63,7 +68,7 @@ self.addEventListener("fetch", event => {
         }
         return response;
       })
-      .catch(() => caches.match(event.request).then(cached => cached || caches.match("./index.html")))
+      .catch(() => caches.match(event.request).then(cached => cached || (event.request.mode === "navigate" ? caches.match("./index.html") : Response.error())))
   );
 });
 
