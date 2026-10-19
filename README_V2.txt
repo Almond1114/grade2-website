@@ -1,3 +1,8 @@
+【現行版：2Base 4 / 2年3組専用】
+写真のDrive保存・Classroom引用を含む現在の導入手順は docs/GRADE23_SETUP.md を参照してください。
+既存シートの更新には migrateGrade23 を使います。過去の説明にある setupSheets は実行しないでください。
+以下はv2当時の変更履歴です。
+
 2Base v2 - 2学年総合web・複数ページ・白基調デザイン版
 
 この版で変わったこと

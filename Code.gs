@@ -2,14 +2,15 @@
 // 1. Googleスプレッドシートを作る
 // 2. 拡張機能 → Apps Script を開く
 // 3. このコードを貼る
-// 4. SPREADSHEET_ID にスプレッドシートIDを入れる
-// 5. setupSheets を1回実行する
+// 4. Media.gs も追加し、docs/GRADE23_SETUP.md に従ってスクリプト プロパティを設定
+// 5. 既存サイトは migrateGrade23 → authorizeGrade23 を実行（既存データは保持）
 // 6. デプロイ → 新しいデプロイ → ウェブアプリ
 //    実行ユーザー: 自分
 //    アクセスできるユーザー: 全員
 // 7. 出てきたウェブアプリURLを app-config.js の GAS_URL に貼る
 
 const SPREADSHEET_ID = "ここにスプレッドシートIDを入れる";
+const SITE_CLASS = "2-3";
 
 const SHEETS = {
   announcements: {
@@ -25,9 +26,6 @@ const SHEETS = {
     name: "時間割",
     headers: ["クラス", "曜日", "1時間目", "2時間目", "3時間目", "4時間目", "5時間目", "6時間目", "持ち物メモ", "更新日時"],
     sample: [
-      ["2-1", "月", "国語", "数学", "英語", "理科", "体育", "総合", "体育着", ""],
-      ["2-1", "火", "社会", "英語", "数学", "美術", "国語", "道徳", "美術セット", ""],
-      ["2-2", "月", "数学", "英語", "国語", "体育", "社会", "総合", "体育着", ""],
       ["2-3", "月", "英語", "数学", "理科", "国語", "体育", "総合", "体育着・水筒", ""],
       ["2-3", "火", "国語", "社会", "数学", "美術", "英語", "道徳", "美術セット", ""],
       ["2-3", "水", "数学", "体育", "理科", "技術", "社会", "学活", "技術ファイル", ""],
@@ -35,6 +33,12 @@ const SHEETS = {
       ["2-3", "金", "社会", "国語", "体育", "英語", "数学", "学活", "体育着", ""]
     ],
     note: "クラスと曜日で1行です。例：2-3 / 月。"
+  },
+  timetablePhotos: {
+    name: "時間割の写真",
+    headers: ["表示", "日付", "クラス", "タイトル", "画像URL", "リンクURL", "メモ", "作成日時", "更新日時"],
+    sample: [],
+    note: "Classroomから引用した時間割の写真を登録します。掲載日が新しい写真を2年3組の時間割欄に表示します。"
   },
   tests: {
     name: "テスト予定",
@@ -77,24 +81,23 @@ const LOG_SHEET_NAME = "編集ログ";
 const HELP_SHEET_NAME = "使い方";
 const PUSH_TOKENS_SHEET_NAME = "Push登録端末";
 const PUSH_ON_EDIT = true;
-const DATA_CACHE_KEY = "GRADE2_SITE_DATA_V2";
+const DATA_CACHE_KEY = "GRADE23_SITE_DATA_V4_1";
 const DATA_CACHE_SECONDS = 90;
 const FCM_SCOPE = "https://www.googleapis.com/auth/firebase.messaging";
 
 
 function doGet(e) {
-  const action = String(e.parameter.action || "data");
-  const callback = String(e.parameter.callback || "");
+  const params = (e && e.parameter) || {};
+  const action = String(params.action || "data");
+  const callback = String(params.callback || "");
 
   try {
     let result;
 
     if (action === "data") {
       result = { ok: true, data: getAllDataCached_() };
-    } else if (action === "update") {
-      result = updateEntry(e.parameter);
-    } else if (action === "setup") {
-      result = setupSheets();
+    } else if (["add", "update", "setup", "dailyPushNow", "setupDailyPushTrigger"].includes(action)) {
+      result = { ok: false, error: "この操作は編集キー付きのPOSTで実行してください。シート初期化はWebから実行できません。" };
     } else if (action === "registerPushToken") {
       result = registerPushToken(e.parameter);
     } else if (action === "unregisterPushToken") {
@@ -103,10 +106,6 @@ function doGet(e) {
       result = sendPushTest(e.parameter);
     } else if (action === "pushStatus") {
       result = getPushStatus();
-    } else if (action === "dailyPushNow") {
-      result = sendDailyPreparationPush();
-    } else if (action === "setupDailyPushTrigger") {
-      result = setupDailyPushTrigger();
     } else {
       result = { ok: false, error: "不明なactionです" };
     }
@@ -118,6 +117,7 @@ function doGet(e) {
 }
 
 function output(obj, callback) {
+  if (callback && !/^[A-Za-z_$][A-Za-z0-9_$]{0,100}$/.test(callback)) callback = "";
   const json = JSON.stringify(obj);
   const text = callback ? `${callback}(${json});` : json;
   const mime = callback ? ContentService.MimeType.JAVASCRIPT : ContentService.MimeType.JSON;
@@ -125,7 +125,9 @@ function output(obj, callback) {
 }
 
 function getSpreadsheet() {
-  return SpreadsheetApp.openById(SPREADSHEET_ID);
+  const id = PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID") || SPREADSHEET_ID;
+  if (!id || id === "ここにスプレッドシートIDを入れる") throw new Error("スクリプト プロパティにSPREADSHEET_IDを設定してください。");
+  return SpreadsheetApp.openById(id);
 }
 
 function nowText() {
@@ -134,6 +136,9 @@ function nowText() {
 
 function setupSheets() {
   const ss = getSpreadsheet();
+  if (Object.keys(SHEETS).some(key => ss.getSheetByName(SHEETS[key].name))) {
+    return { ok: false, error: "既存シートがあるため初期化しませんでした。migrateGrade23を実行してください。" };
+  }
 
   Object.keys(SHEETS).forEach(key => {
     const info = SHEETS[key];
@@ -193,7 +198,7 @@ function setupHelpSheet(ss) {
   const rows = [
     ["項目", "説明"],
     ["表示", "TRUEなら表示、FALSEなら非表示です。"],
-    ["クラス", "全体 / 2-1 / 2-2 / 2-3 など。全体はどのクラスにも表示されます。"],
+    ["クラス", "2-3に固定。既存の「全体」の行は学年共通の連絡として表示します。"],
     ["日付・締切", "できれば 2026-07-09 の形で書くと、並び替えやカウントダウンが正しく動きます。"],
     ["画像URL", "https:// から始まる画像URLだけ使えます。"],
     ["編集履歴", "サイトから保存すると編集ログに残ります。荒らされたときの確認用です。"],
@@ -284,9 +289,11 @@ function clearDataCache_() {
 function getAllData() {
   const data = {};
   Object.keys(SHEETS).forEach(key => {
-    data[key] = readSheet(SHEETS[key].name);
+    data[key] = readSheet(SHEETS[key].name).filter(row => rowBelongsToClass_(row, key));
   });
-  data.editLog = readEditLog();
+  // 旧学年版の編集ログには他クラスの内容も含まれるため、公開データには含めません。
+  data.editLog = [];
+  data.meta = { apiVersion: 4, classId: SITE_CLASS, editorKeyRequired: true };
   return data;
 }
 
@@ -327,17 +334,24 @@ function readEditLog() {
 function updateEntry(params) {
   const type = String(params.type || "");
   const rowNumber = Number(params.rowNumber || 0);
-  const info = SHEETS[type];
+  const info = Object.prototype.hasOwnProperty.call(SHEETS, type) && SHEETS[type];
 
   if (!info) return { ok: false, error: "編集タイプが正しくありません" };
   if (!Number.isInteger(rowNumber) || rowNumber < 2) return { ok: false, error: "編集する行が正しくありません" };
 
   const sheet = getSpreadsheet().getSheetByName(info.name);
-  if (!sheet) throw new Error(`シート「${info.name}」がありません。setupSheetsを実行してください。`);
+  if (!sheet) throw new Error(`シート「${info.name}」がありません。migrateGrade23を実行してください。`);
   if (rowNumber > sheet.getLastRow()) return { ok: false, error: "指定された行が見つかりません" };
 
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getDisplayValues()[0].map(String);
   const oldValues = sheet.getRange(rowNumber, 1, 1, headers.length).getDisplayValues()[0];
+  const classIndex = headers.indexOf("クラス");
+  if (classIndex !== -1 && !rowBelongsToClass_({ クラス: oldValues[classIndex] }, type)) {
+    return { ok: false, error: "2年3組以外の行は編集できません。" };
+  }
+  if (classIndex !== -1 && params.クラス && params.クラス !== SITE_CLASS) {
+    return { ok: false, error: "保存先のクラスは2-3に固定されています。" };
+  }
   const newValues = oldValues.slice();
   const changed = [];
   const now = nowText();
@@ -361,15 +375,18 @@ function updateEntry(params) {
 
   sheet.getRange(rowNumber, 1, 1, headers.length).setValues([newValues]);
   const detail = changed.length ? changed.join(" / ") : "保存ボタンが押されました";
-  appendLog(info.name, rowNumber, detail, oldValues.join(" | "), newValues.join(" | "));
+  try { appendLog(info.name, rowNumber, "2-3: " + detail, oldValues.join(" | "), newValues.join(" | ")); } catch (_) {}
   clearDataCache_();
 
   let pushResult = null;
   if (PUSH_ON_EDIT) {
-    pushResult = notifyPushOnEdit(type, info.name, rowNumber, detail, headers, newValues);
+    try { pushResult = notifyPushOnEdit(type, info.name, rowNumber, detail, headers, newValues); }
+    catch (_) { pushResult = { sent: 0, failed: 1 }; }
   }
 
-  return { ok: true, message: "保存しました", push: pushResult };
+  const savedRow = { __rowNumber: String(rowNumber) };
+  headers.forEach((header, index) => { savedRow[header] = String(newValues[index] || ""); });
+  return { ok: true, message: "保存しました", rowNumber: rowNumber, row: savedRow, push: pushResult };
 }
 
 function appendLog(typeName, rowNumber, detail, beforeText, afterText) {
@@ -403,7 +420,8 @@ function cleanValue(header, value) {
     return String(text).toUpperCase() === "FALSE" ? "FALSE" : "TRUE";
   }
 
-  return text;
+  // setValues/appendRow が入力を数式として評価しないようにする。
+  return /^[=+@-]/.test(text) ? "'" + text : text;
 }
 
 
@@ -433,7 +451,7 @@ function registerPushToken(params) {
   const sheet = ss.getSheetByName(PUSH_TOKENS_SHEET_NAME);
   const now = nowText();
   const deviceId = cleanPushText(params.deviceId || "unknown", 120);
-  const className = cleanPushText(params.className || "未選択", 80);
+  const className = SITE_CLASS;
   const platform = cleanPushText(params.platform || "unknown", 40);
   const userAgent = cleanPushText(params.userAgent || "", 300);
 
@@ -561,7 +579,7 @@ function notifyPushOnEdit(typeKey, typeName, rowNumber, detail, headers, newValu
         sheetName: typeName,
         rowNumber: String(rowNumber),
         className: cleanPushText(className, 80),
-        screen: "home"
+        screen: ["timetable", "timetablePhotos"].includes(typeKey) ? typeKey : "home"
       }
     });
 
@@ -586,7 +604,7 @@ function readActivePushTokens_() {
     const row = values[i];
     const enabled = String(row[0] || "TRUE").toUpperCase() !== "FALSE";
     const token = String(row[4] || "").trim();
-    if (enabled && token) {
+    if (enabled && token && String(row[2] || "").trim() === SITE_CLASS) {
       tokens.push({ rowNumber: i + 1, token, platform: row[3] || "", className: row[2] || "" });
     }
   }

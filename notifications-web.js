@@ -65,7 +65,7 @@
   }
 
   function getSelectedClass() {
-    return window.grade2App?.getSnapshot?.().selectedClass || localStorage.getItem("grade2SelectedClass") || "未選択";
+    return "2-3";
   }
 
   function getPlatform() {

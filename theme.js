@@ -1,7 +1,7 @@
 (function(){
   window.GRADE2_CONFIG = window.GRADE2_CONFIG || {};
   window.GRADE2_CONFIG.DATA_CACHE_MAX_AGE = 60 * 1000;
-  window.GRADE2_CONFIG.APP_VERSION = "4.2.0-mobile";
+  window.GRADE2_CONFIG.APP_VERSION = "4.2.0-grade23-timetable";
 
   const key = "grade2Theme";
   const defaultTheme = "atelier";
@@ -54,16 +54,16 @@
   }
 
   function loadSiteAssets(){
-    loadCssOnce("responsive-ui.css?v=4.2.0-mobile", "responsive-ui");
-    loadCssOnce("mobile-editor-fix.css?v=4.2.0-mobile", "mobile-editor-fix");
-    loadCssOnce("brand-icon.css?v=4.2.0-mobile", "brand-icon");
-    loadCssOnce("stylish-ui.css?v=4.2.0-mobile", "stylish-ui");
-    loadCssOnce("exceptional-ui.css?v=4.2.0-mobile", "exceptional-ui");
-    loadCssOnce("live-system-ui.css?v=4.2.0-mobile", "live-system-ui");
-    loadCssOnce("theme-pack.css?v=4.2.0-mobile", "theme-pack");
-    loadCssOnce("mobile-ui.css?v=4.2.0-mobile", "mobile-ui");
-    loadScriptOnce("ux-enhancements.js?v=4.2.0-mobile", "ux-enhancements");
-    loadScriptOnce("live-system-ui.js?v=4.2.0-mobile", "live-system-ui");
+    loadCssOnce("responsive-ui.css?v=4.2.0-grade23", "responsive-ui");
+    loadCssOnce("mobile-editor-fix.css?v=4.2.0-grade23", "mobile-editor-fix");
+    loadCssOnce("brand-icon.css?v=4.2.0-grade23", "brand-icon");
+    loadCssOnce("stylish-ui.css?v=4.2.0-grade23", "stylish-ui");
+    loadCssOnce("exceptional-ui.css?v=4.2.0-grade23", "exceptional-ui");
+    loadCssOnce("live-system-ui.css?v=4.2.0-grade23", "live-system-ui");
+    loadCssOnce("theme-pack.css?v=4.2.0-grade23", "theme-pack");
+    loadCssOnce("mobile-ui.css?v=4.2.0-grade23", "mobile-ui");
+    loadScriptOnce("ux-enhancements.js?v=4.2.0-grade23", "ux-enhancements");
+    loadScriptOnce("live-system-ui.js?v=4.2.0-grade23", "live-system-ui");
   }
 
   function parseTimestamp(value) {
